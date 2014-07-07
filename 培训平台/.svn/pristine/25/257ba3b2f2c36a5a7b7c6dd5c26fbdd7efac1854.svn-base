@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>test</title>
+<script type="text/javascript">
+function sendData(){
+	var video = "1e6cb8d5.mp4"
+	var pic = "pic2.jpg"
+	var auto = true;
+	thisMovie("FlashID").sendDataFromAs(pic,video,auto);
+}
+
+
+function thisMovie(movieName) {   
+          if (navigator.appName.indexOf("Microsoft") != -1) {
+             return document.getElementById(movieName);
+         } else {
+             return document.embeds[movieName]; //document[movieName];
+         } 
+     } 
+	 
+function callback(number)
+{
+	//alert(number);
+}
+
+function test(string)
+{
+	alert(string)
+}
+
+	 
+</script>
+</head>
+<body>
+<div id="div1">
+<object id="FlashID" name="FlashID" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="320" height="240" type="application/x-shockwave-flash">
+  <param name="movie" value="flvplayer.swf" />
+  <param name="FlashVars" value="auto=true&vdo=《倩女幽魂》官方网站1.flv&pic=lxy.jpg&fn=track_video&fnParam=dtgf" />
+  <param name="quality" value="high" />
+  <param name="swfversion" value="8.0.35.0" />
+  <param name="allowScriptAccess" value="always" />
+  <param name="wmode" value="transparent" />
+  <param name="allowFullScreen" value="true" />
+  <embed src="flvplayer.swf" quality="high" wmode="transparent" width="320" height="240" id="FlashID" name="FlashID" align="middle" allowScriptAccess="always" allowFullScreen="true" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" FlashVars="auto=false&vdo=1e6cb8d5.mp4&pic=lxy.jpg&fn=track_video&fnParam=dtgf"
+/>
+</object>
+</div>
+<div>
+  <input type="button" onclick="sendData()" value="Send"/>
+</div>
+</body>
+</html>

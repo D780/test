@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>flash播放器</title>
+<script type="text/javascript">
+function sendData(){
+  var video = "/test/a00f0c86a8c6ee0b83ab779d11bf5d0a.f4v"
+  var pic = "/test/e480ad0483ffb7f5052982daf110ec5b.jpg"
+  var auto = true;
+  thisMovie("FlashID").sendDataFromAs(pic,video,auto);
+}
+
+/*
+function thisMovie(movieName) {   
+          if (navigator.appName.indexOf("Microsoft") != -1) {
+        var UA = navigator.userAgent,
+            isIE = UA.indexOf('MSIE') > -1,
+            v = isIE ? /\d+/.exec(UA.split(';')[1]) : 'no ie';
+      if(v > 10)
+      {
+        return document.embeds[movieName]; //document[movieName];
+      }
+      else
+      {
+        return document.getElementById(movieName);
+      }
+         } else {
+             return document.embeds[movieName]; //document[movieName];
+         } 
+     } 
+   */
+
+function thisMovie(movieName) {   
+          if (navigator.appName.indexOf("Microsoft") != -1) {
+        var UA = navigator.userAgent,
+            isIE = UA.indexOf('MSIE') > -1,
+            v = isIE ? /\d+/.exec(UA.split(';')[1]) : 'no ie';
+      if(v > 10)
+      {
+        return document.embeds[movieName]; //document[movieName];
+      }
+      else
+      {
+        return document.getElementById(movieName);
+      }
+         } else {
+             return document.embeds[movieName]; //document[movieName];
+         } 
+     } 
+   
+function callback(str)
+{
+  //alert(str);
+}
+
+function test(str)
+{
+  //alert(str)
+}
+
+   
+</script>
+</head>
+<body>
+<div id="div1">
+<object id="FlashID" name="FlashID" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="640" height="480" type="application/x-shockwave-flash">
+  <param name="movie" value="/flash/flvplayer.swf" />
+  <param name="FlashVars" value="auto=false&vdo=1e6cb8d5.mp4&pic=&fnB=test&fnParamB=end&fnA=callback&fnParamA=start" />
+  <param name="quality" value="high" />
+  <param name="swfversion" value="8.0.35.0" />
+  <param name="allowScriptAccess" value="always" />
+  <param name="wmode" value="transparent" />
+  <param name="allowFullScreen" value="true" />
+  <embed src="/flash/flvplayer.swf" quality="high" wmode="transparent" width="640" height="480" id="FlashID" name="FlashID" align="middle" allowScriptAccess="always" allowFullScreen="true" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" FlashVars="auto=false&vdo=1e6cb8d5.mp4&pic=&fnB=test&fnParamB=end&fnA=callback&fnParamA=start"
+/><!-- 980f0afeb277e902c448022dac9c3904.MTS -->
+</object>
+</div>
+<div style="display:block">
+  <input type="button" onclick="sendData()" value="Send"/>
+</div>
+</body>
+</html>
+
+

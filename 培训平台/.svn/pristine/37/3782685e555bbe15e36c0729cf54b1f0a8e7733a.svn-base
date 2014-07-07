@@ -1,0 +1,1345 @@
+/*
+* 实现url get请求
+* */
+var fs = require('fs');
+var path = require('path');
+var async = require('async');
+var plist = require('plist');
+var request = require('request');
+var formidable = require('formidable');
+var querystring = require('querystring');
+
+/*参数*/
+var db = require('../models');
+var allLogin = require('../config').allLogin;
+var searchUser = require('../config').searchUser;
+var department = require('../config').department;
+
+/*方法*/
+var CSTDateString = require('../utils/function').CSTDateString;
+var CSTDateFloat = require('../utils/function').CSTDateFloat;
+var CSTDateInt = require('../utils/function').CSTDateInt;
+var strTrim = require('../utils/function').strTrim;
+var fiveId = require('../utils/function').fiveId;
+
+
+//退出登录
+exports.logout = function(req, res) {
+  req.session.user = null;
+  res.redirect(allLogin.authLoginUrl);
+};
+
+
+//统一登录 处理
+exports.login = function(req, res){
+  console.log('统一登录处理');
+  var code = req.query.code || '';
+  var key = req.query.key || '';
+  var token = req.cookies[key] || '';
+  if (token) {
+    console.log('cookie存在');
+    //获取用户信息
+    var options = { pst: allLogin.authPst, code: code, token: token };
+    var url = allLogin.authInfoUrl + '&' + querystring.stringify(options);
+    request.get({url: url, timeout: 1000}, function (error, response, body) {
+      if (!error && response.statusCode == 200) {//获取用户信息成功 
+        var parseBody = plist.parseStringSync(body);
+        if (parseBody && parseBody.Code === 0) {//姓名邮箱信息获取成功
+          var name = parseBody.extdata.name;
+          var acct = parseBody.extdata.acct;
+          console.log('name: ' + name);
+          console.log('acct: ' + acct);
+          var branch = '', ccid = '', depart = '';
+          //获得branch和ccid
+          request.get({url: searchUser.searchUserUrl + acct, timeout: 1000}, function(e, r, c) {
+            if (!e && res.statusCode == 200) {
+              var parsec = JSON.parse(c);
+              if (parsec && parsec.users.length) {
+                branch = parsec['users'][0].USER_Branch;
+                ccid = parsec['users'][0].USER_IMCode;
+              }
+              console.log('branch: ' + branch);
+              console.log('ccid: ' + ccid);
+              //获得branch对应的department
+              if (branch && branch in department) {
+                depart = department[branch];
+              } else {
+                depart = branch;
+              }
+              console.log('depart: ' + depart);
+              var User = db.User;
+              //账号已经存在则更新  不存在则创建
+              User.find({where: {acct: acct}}).success(function(user){
+                if (user) {
+                  var userOptions = {};
+                  if (user.name !== name) {
+                    userOptions['name'] = name;
+                  }
+                  if (user.branch !== branch) {
+                    userOptions['branch'] = branch;
+                  }
+                  if (user.ccid !== ccid) {
+                    userOptions['ccid'] = ccid;
+                  }
+                  if (user.department !== depart) {
+                    userOptions['department'] = depart;
+                  }
+                  userOptions['updatedTime'] = CSTDateString(new Date());
+                  user.updateAttributes(userOptions).success(function(u){
+                    console.log('账号已存在，更新信息');
+                    req.session.user = u; //更新session
+                    res.redirect('/');
+                  });
+                } else {
+                  var timeTmp = CSTDateString(new Date());
+                  var userOptions = {
+                    name: name,
+                    acct: acct,
+                    branch: branch,
+                    ccid: ccid,
+                    department: depart,
+                    createdTime: timeTmp,
+                    updatedTime: timeTmp
+                  };
+
+                  User.create(userOptions).success(function(u){
+                    console.log('账号不存在，创建账号');
+                    req.session.user = u;//创建session
+                    res.redirect('/');
+                  });
+                }
+              });
+            } else {
+              res.send({code: 0, msg: '获得branch和ccid失败：' + e || r.statusCode});
+            }
+          });
+        } else {//获取失败 -> / -> session不存在 -> 重新登录 -> adminlogin
+          console.log('获取姓名邮箱信息失败：Code !== 0');
+          res.redirect('/');
+        }
+      } else {
+        res.send({code: 0, msg: '获取用户信息出错: ' + error || response.statusCode});
+      }
+    });
+  } else {
+    console.log('cookie不存在');
+    res.redirect(allLogin.authLoginUrl);
+  }
+};
+
+
+//查找公司员工  /searchusers?key=
+exports.searchUsers = function(req, res) {
+  var url = 'http://mail.oa.com/func/api.aspx?pst=jslfjslyh255nujmiksxtgbe' + 
+            '&act=oausers&json=true&search=';
+  var key = req.query.key || '';
+  console.log('key: ' + req.query.key);
+  request.get({url: url + key, timeout: 1000}, function(e, r, c){
+    if(!e && r.statusCode === 200){
+      res.send(JSON.parse(c)); 
+    } else {
+      res.send({users:[]});
+    }
+  });
+};
+
+//列出已有的所有讲师  /listtutors 后添加的显示最前
+exports.listTutors = function(req, res) {
+  var Tutor = db.Tutor, User = db.User, userIdList = [], tutorList = [];
+  Tutor.findAll({order: 'id desc'}).success(function(tutors){
+    if(tutors.length){
+      async.eachSeries(tutors, function(tutor, callback){
+        //获取所有讲师 不重复
+        if(userIdList.indexOf(tutor.userId) === -1){
+          userIdList.push(tutor.userId);
+        }
+        callback();
+      }, function(err){
+        if(err){
+          console.log('获取所有讲师出错：', err);
+        }
+        async.eachSeries(userIdList, function(userId, cb){
+          User.find(userId).success(function(user){
+            if(user){
+              tutorList.push({USER_Account: user.acct, USER_NickName: user.name});
+            }
+            cb();
+          });
+        }, function(e){
+          if(e){
+            console.log('获取讲师用户出错：', e);
+          }
+          res.send({users: tutorList});
+        });
+      });
+    }else{
+      res.send({users: []});
+    }
+  });
+};
+
+
+//列出已有的所有助理  /listassistant  后添加的显示最前
+exports.listAssistant = function(req, res) {
+  var Assistant = db.Assistant, User = db.User, userIdList = [], assistantList = [];
+  Assistant.findAll({order: 'id desc'}).success(function(assistants){
+    if(assistants.length){
+      async.eachSeries(assistants, function(assistant, callback){
+        //获取所有讲师 不重复
+        if(userIdList.indexOf(assistant.userId) === -1){
+          userIdList.push(assistant.userId);
+        }
+        callback();
+      }, function(err){
+        if(err){
+          console.log('获取所有助理出错：', err);
+        }
+        async.eachSeries(userIdList, function(userId, cb){
+          User.find(userId).success(function(user){
+            if(user){
+              assistantList.push({USER_Account: user.acct, USER_NickName: user.name});
+            }
+            cb();
+          });
+        }, function(e){
+          if(e){
+            console.log('获取助理用户出错：', e);
+          }
+          res.send({users: assistantList});
+        });
+      });
+    }else{
+      res.send({users: []});
+    }
+  });
+};
+
+//列出最近添加的用户  /listrecentusers
+exports.listRecentUsers = function(req, res) {
+  var UserLog = db.UserLog, User = db.User, recentUsersList = [];
+  UserLog.findAll({order: 'updatedTime desc'}).success(function(userlogs){
+    if(userlogs.length){
+      async.eachSeries(userlogs, function(userlog, cb){
+        User.find(userlog.userId).success(function(user){
+          if(user){
+            var pushOpt = {
+              USER_Account: user.acct,
+              USER_IMCode: user.ccid,
+              USER_NickName: user.name,
+              USER_Branch: user.branch
+            };
+            recentUsersList.push(pushOpt);
+          }
+          cb();
+        });
+      }, function(e){
+        if(e){
+          console.log('获取最近添加的用户出错：', e);
+        }
+        res.send({users: recentUsersList});
+      });
+    }else{
+      res.send({users: []});
+    }
+  });
+};
+
+
+/*
+* 首页展示 我参与的所有班次  正在学习  已经学完
+* 参数； 无
+* todo:
+* */
+exports.indexpage = function(req, res){
+  var userId = req.session.user.id || 0; //用户id
+  var retArr = [], classIds = [], classIdLearn = {}, clsDict = {}, tutorList = [], tagList = [];
+  var Student = db.Student, Class = db.Class, Course = db.Course, Tutor = db.Tutor, Tag = db.Tag;
+  var resultDict = {}, totalChapter = 0, Progress = db.Progress, User = db.User;
+  resultDict['learning'] = [];resultDict['learned'] = [];
+  async.series([
+    function(callback){//得到所有班次 没分已学和正在学 最后再区分
+      Student.findAll({where: {userId: userId}}).success(function(students){
+        if(students.length){
+          for(var i = 0; i < students.length; i++){
+            var clsid = students[i].classId;
+            classIdLearn[clsid] = students[i].learned; //班次id -> 是否已经学完该课程
+            classIds.push(clsid);//所有班次
+          }
+        }
+        console.log('我参与的所有班次id：', classIds);
+        callback();
+      });
+    },
+    function(callback){ //处理每个班次的相关信息
+      if(!classIds.length){
+        res.render('index', { title: '多益培训平台', result: resultDict});
+        return;
+      }
+      async.eachSeries(classIds, function(classId, ccbb){
+        Class.find(classId).success(function(cls){
+          if(cls){
+            clsDict = {}; //处理一个就清空一个重新算起
+            clsDict['className'] = cls.name; //班次名
+            clsDict['id'] = cls.id; //班次id 用于判断是否已学
+            clsDict['classTimes'] = 0;
+            var courseId = cls.courseId;
+            console.log('course id: ', courseId);
+            async.parallel([
+              function(cb){ //课时 图片
+                Course.find(courseId).success(function(course){
+                  if(course){
+                    totalChapter = course.chapters;
+                    clsDict['classTimes'] = totalChapter; 
+                    clsDict['picture'] = course.picture;
+                    clsDict['intro'] = (course.intro).replace(/&nbsp;/gi, '');
+                    clsDict['courseName'] = course.name;
+                  }
+                  cb();
+                });
+              },
+              function(cb){//学习进度 统计看完的章数 / 总章数
+                console.log('统计课程学习进度');
+                console.log('章节总数：', totalChapter);
+                Progress.findAll({where: {userId: userId, classId: classId, status: 1}}).success(function(pros){
+                  if(pros.length){
+                    console.log('已经看完的章节数', pros.length);
+                    clsDict['progress'] = totalChapter == 0 ? 0 : parseInt(pros.length / totalChapter * 100);
+                    console.log('已经看完的百分比', clsDict['progress']);
+                    cb();
+                  }else{
+                    clsDict['progress'] = 0;
+                    cb();
+                  }
+                });
+              },
+              function(cb){ //讲师
+                Tutor.findAll({where: {classId: cls.id}}).success(function(tutors){
+                  if(tutors.length){
+                    async.eachSeries(tutors, function(tutor, c){
+                      User.find(tutor.userId).success(function(user){
+                        if(tutorList.indexOf(user.name) === -1){
+                          tutorList.push(user.name);
+                        }
+                        c();
+                      });
+                    }, function(){
+                      clsDict['tutor'] = tutorList;
+                      cb();
+                    });
+                  }else{
+                    cb();
+                  }
+                });
+              },
+              function(cb){ //标签
+                Tag.findAll({where: {courseId: courseId}}).success(function(tags){
+                  if(tags.length){
+                    async.eachSeries(tags, function(tag, c){
+                      if(tagList.indexOf(tag.name) === -1){
+                        tagList.push(tag.name);
+                      }
+                      c();
+                    }, function(){
+                      clsDict['tag'] = tagList;
+                      cb();
+                    });
+                  }else{
+                    clsDict['tag'] = [];
+                    cb();
+                  }
+                });
+              }
+            ], function(err, results){
+              retArr.push(clsDict);
+              ccbb();
+            });
+          }else{
+            ccbb();
+          }
+        });
+      }, function(er){
+        callback();
+      })
+    }
+    ], function(err){
+    for(var i = retArr.length - 1; i >= 0; i--){
+      if(classIdLearn[retArr[i].id] === 0){
+        resultDict['learning'].push(retArr[i]);
+      }else{
+        resultDict['learned'].push(retArr[i]);
+      }
+    }
+    console.log('resultDict', resultDict);
+    res.render('index', { title: '多益培训平台', result: resultDict});
+  });
+};
+
+
+
+
+
+//课程列表页
+exports.courseList = function(req, res) {
+  var search = req.query.search || '';
+  search = strTrim(search);
+  var page = +req.query.page || 1; //第几页
+  if(page <= 0) page = 1;
+  console.log('当前第几页：', page);
+  var count = 9; //每页多少条数据
+  console.log('每页多少条数据：', count);
+  var len = 0; //搜索到的班次个数
+  var Course = db.Course, Class = db.Class, Tag = db.Tag, Tutor = db.Tutor, User = db.User, Assistant = db.Assistant;
+  var resultDict = {}, retArr = [], totalClass = 0, totalPage = 0, searchClassIds = [], searchUserIds = [];
+  resultDict['currentPage'] = page;
+  if(search){ //搜索关键字 班次名称 讲师
+    console.log('有搜索：', search);
+    resultDict['search'] = search;
+    var sqlSearch = '%';
+    for(var i = 0; i < search.length; i++){
+      sqlSearch += search[i] + '%';
+    }
+    console.log('数据库搜索：', sqlSearch);
+    var courseIdList = []; //搜索到的课程id列表
+    async.series([
+      function(callback){//搜索课程名称 得到课程id列表 courseIdList
+        Course.findAll({where: ["name LIKE ?", sqlSearch]}).success(function(courses){
+          if(courses.length){
+            console.log('搜到课程名称');
+            for(var i = 0; i < courses.length; i++){
+              courseIdList.push(courses[i].id);
+            }
+            async.eachSeries(courseIdList, function(courseId, cb){
+              Class.findAll({where: {courseId: courseId}}).success(function(classes){
+                if(classes.length){ //搜索并合并班次id
+                  for(var j = 0; j < classes.length; j++){
+                    if(searchClassIds.indexOf(classes[j].id) === -1){
+                      searchClassIds.push(classes[j].id);
+                    }
+                  }
+                  cb();
+                }else{
+                  cb();
+                }
+              });
+            }, function(er){
+              callback();
+            });
+          }else{
+            callback();
+          }
+        });
+      },
+      function(callback){ //搜索班次名称 得到班次id
+        Class.findAll({where: ["name LIKE ?", sqlSearch]}).success(function(classes){
+          if(classes.length){
+            console.log('搜到班次名称');
+            for(var i = 0; i < classes.length; i++){
+              if(searchClassIds.indexOf(classes[i].id) === -1){
+                searchClassIds.push(classes[i].id);
+              }
+            }
+            callback();
+          }else{
+            callback();
+          }
+        });
+      },
+      function(callback){//搜索讲师名称 得到班次id
+        User.findAll({where: ["name LIKE ?", sqlSearch]}).success(function(users){
+          if(users.length){
+            for(var i = 0; i < users.length; i++){
+              if(searchUserIds.indexOf(users[i].id) === -1){
+                searchUserIds.push(users[i].id);
+              }
+            }
+            async.eachSeries(searchUserIds, function(userId, cb){
+              Tutor.findAll({where: {userId: userId}}).success(function(tutors){
+                if(tutors.length){
+                  for(var j = 0; j < tutors.length; j++){
+                    if(searchClassIds.indexOf(tutors[j].classId) === -1){
+                      searchClassIds.push(tutors[j].classId);
+                    }
+                  }
+                  cb();
+                }else{
+                  cb();
+                }
+              });
+            }, function(er){
+              callback();
+            });
+          }else{
+            callback();
+          }
+        });
+      },
+      function(callback){ //得到所有搜索的班次id 并分页
+        searchClassIds = searchClassIds.reverse();//倒序 最新的视频在前面
+        len = searchClassIds.length;
+        totalPage = Math.floor(len / count) + 1;
+        if(len % count == 0){
+          totalPage--;
+        }
+        var classIds = [];
+        console.log('len', len);
+        if(len <= count){ //不到一页
+          classIds = searchClassIds;
+        }else if(page === 1){
+          classIds = searchClassIds.slice(0, count);
+        }else if(len - count*(page-1) >0){ //超过一页
+          classIds = searchClassIds.slice(count*(page-1), count*page);
+        }
+        //分页后 进行查询
+        if(!classIds.length){
+          resultDict['classes'] = [];
+          resultDict['totalClass'] = len;
+          resultDict['totalPage'] = 0;
+          res.render('courses', { title: '多益培训平台', result: resultDict});
+          return;
+        }
+        async.eachSeries(classIds, function(classId, ccbb){
+          Class.find(classId).success(function(cls){
+            if(cls){ //这里的处理跟下面没搜索条件一样
+              var clsDict = {}, tutorList = [], tagList = [], assistList = [];
+              clsDict['className'] = cls.name;
+              clsDict['startTime'] = cls.startTime;
+              clsDict['endTime'] = cls.endTime;
+              clsDict['classId'] = cls.id;
+              var courseId = cls.courseId;
+              async.parallel([
+                function(cb){ //课时 图片
+                  Course.find(courseId).success(function(course){
+                    if(course){
+                      clsDict['classTimes'] = course.chapters;
+                      clsDict['picture'] = course.picture;
+                      clsDict['courseName'] = course.name;
+                      cb();
+                    }else{
+                      cb();
+                    }
+                  });
+                },
+                function(cb){ //讲师
+                  Tutor.findAll({where: {classId: cls.id}}).success(function(tutors){
+                    if(tutors.length){
+                      async.eachSeries(tutors, function(tutor, c){
+                        User.find(tutor.userId).success(function(user){
+                          if(tutorList.indexOf(user.name) === -1){
+                            tutorList.push(user.name);
+                          }
+                          c();
+                        });
+                      }, function(){
+                        clsDict['tutor'] = tutorList;
+                        cb();
+                      });
+                    }else{
+                      cb();
+                    }
+                  });
+                },
+                function(cb){ //标签
+                  Tag.findAll({where: {courseId: courseId}}).success(function(tags){
+                    if(tags.length){
+                      async.eachSeries(tags, function(tag, c){
+                        if(tagList.indexOf(tag.name) === -1){
+                          tagList.push(tag.name);
+                        }
+                        c();
+                      }, function(){
+                        clsDict['tag'] = tagList;
+                        cb();
+                      });
+                    }else{
+                      cb();
+                    }
+                  });
+                },
+                function(cb){ //助教
+                  Assistant.findAll({where: {classId: cls.id}}).success(function(assists){
+                    if(assists.length){
+                      async.eachSeries(assists, function(assist, c){
+                        User.find(assist.userId).success(function(user){
+                          if(assistList.indexOf(user.name) === -1){
+                            assistList.push(user.name);
+                          }
+                          c();
+                        });
+                      }, function(){
+                        clsDict['assistant'] = assistList;
+                        cb();
+                      });
+                    }else{
+                      cb();
+                    }
+                  });
+                }
+              ], function(err, results){
+                retArr.push(clsDict);
+                ccbb();
+              });
+            }else{
+              ccbb();
+            }
+          });
+        }, function(er){
+          callback();
+        });
+      }], function(err, results){
+      resultDict['classes'] = retArr;
+      resultDict['totalClass'] = len;
+      resultDict['totalPage'] = totalPage;
+      res.render('courses', { title: '多益培训平台', result: resultDict});
+    });
+  }else{ //没有搜索 直接进课程页面
+    Class.findAndCountAll({order: 'id desc', offset: count*(page-1), limit: count}).success(function(ret){
+      totalClass = ret.count;
+      totalPage = Math.floor(totalClass / count) + 1;
+      if(totalClass % count == 0){
+        totalPage--;
+      }
+      var classes = ret.rows;
+      if(classes.length){ //班次
+        async.eachSeries(classes, function(cls, callback){
+          var clsDict = {}, tutorList = [], tagList = [], assistList = [];
+          clsDict = {};
+          clsDict['className'] = cls.name;
+          clsDict['startTime'] = cls.startTime;
+          clsDict['endTime'] = cls.endTime;
+          clsDict['classId'] = cls.id;
+          var courseId = cls.courseId;
+          async.parallel([
+            function(cb){ //课时 图片
+              Course.find(courseId).success(function(course){
+                if(course){
+                  clsDict['classTimes'] = course.chapters;
+                  clsDict['picture'] = course.picture;
+                  clsDict['courseName'] = course.name;
+                  cb();
+                }else{
+                  cb();
+                }
+              });
+            },
+            function(cb){ //讲师
+              Tutor.findAll({where: {classId: cls.id}}).success(function(tutors){
+                if(tutors.length){
+                  async.eachSeries(tutors, function(tutor, c){
+                    User.find(tutor.userId).success(function(user){
+                      if(tutorList.indexOf(user.name) === -1){
+                        tutorList.push(user.name);
+                      }
+                      c();
+                    });
+                  }, function(){
+                    clsDict['tutor'] = tutorList;
+                    cb();
+                  });
+                }else{
+                  cb();
+                }
+              });
+            },
+            function(cb){ //标签
+              Tag.findAll({where: {courseId: courseId}}).success(function(tags){
+                if(tags.length){
+                  async.eachSeries(tags, function(tag, c){
+                    if(tagList.indexOf(tag.name) === -1){
+                      tagList.push(tag.name);
+                    }
+                    c();
+                  }, function(){
+                    clsDict['tag'] = tagList;
+                    cb();
+                  });
+                }else{
+                  cb();
+                }
+              });
+            },
+            function(cb){ //助教
+              Assistant.findAll({where: {classId: cls.id}}).success(function(assists){
+                if(assists.length){
+                  async.eachSeries(assists, function(assist, c){
+                    User.find(assist.userId).success(function(user){
+                      if(assistList.indexOf(user.name) === -1){
+                        assistList.push(user.name);
+                      }
+                      c();
+                    });
+                  }, function(){
+                    clsDict['assistant'] = assistList;
+                    cb();
+                  });
+                }else{
+                  cb();
+                }
+              });
+            }
+          ], function(err, results){
+            retArr.push(clsDict);
+            callback();
+          });
+        }, function(err){
+          resultDict['classes'] = retArr;
+          resultDict['totalClass'] = totalClass;
+          resultDict['totalPage'] = totalPage;
+          res.render('courses', { title: '多益培训平台', result: resultDict});
+        });
+      }else{
+        resultDict['classes'] = [];
+        resultDict['totalClass'] = 0;
+        resultDict['totalPage'] = totalPage;
+        res.render('courses', { title: '多益培训平台', result: resultDict});
+      }
+    });
+  }
+};
+
+
+/**
+ * 课程详细页 参数 id
+ */
+exports.course = function(req, res){
+  var content = req.query.content || 'intro';
+  var classId = +req.query.id || 0, resultDict = {};
+  resultDict['access'] = access;
+  resultDict['content'] = content;
+  var userId = req.session.user.id || 0, access = 0; //access表示是否有编辑权限
+  db.User.find(userId).success(function(user){
+    if(user){ //超级管理员和课程管理员有编辑权限
+      if(user.role >= 4 || user.role === 1){
+        access = 1;
+      }
+    }
+  });
+  if(!classId){
+    res.render('course', { title: '多益培训平台', result: resultDict});
+    return;
+  }
+  var courseHours = 0; //总课时
+  db.Class.find(classId).success(function(cls){
+    if(cls){
+      var courseId = cls.courseId;
+      var clsDict = {},tutorList = [],tagList = [],assistList = [],studentList = [],chapterList = [];
+      clsDict['className'] = cls.name;
+      clsDict['startTime'] = cls.startTime;
+      clsDict['endTime'] = cls.endTime;
+      clsDict['classId'] = cls.id;
+      clsDict['courseId'] = cls.courseId;
+      clsDict['tutor'] = tutorList;
+      clsDict['tag'] = tagList;
+      clsDict['assistant'] = assistList;
+      clsDict['student'] =  studentList;
+      clsDict['chapter'] = chapterList;
+      async.parallel([
+        function(cb){ //课时 图片 课程简介 课程名字
+          db.Course.find(courseId).success(function(course){
+            if(course){
+              courseHours = course.chapters;
+              clsDict['classTimes'] = course.chapters;
+              clsDict['picture'] = course.picture;
+              clsDict['intro'] = course.intro;
+              clsDict['courseName'] = course.name;
+              cb();
+            }else{
+              cb();
+            }
+          });
+        },
+        function(cb){ //讲师
+          db.Tutor.findAll({where: {classId: cls.id}}).success(function(tutors){
+            if(tutors.length){
+              async.eachSeries(tutors, function(tutor, c){
+                if(tutor.userId === userId){
+                  access = 1; //讲师有编辑权限
+                }
+                db.User.find(tutor.userId).success(function(user){
+                  if(tutorList.indexOf(user.name) === -1){
+                    tutorList.push({
+                      name: user.name,
+                      imid: user.ccid,
+                      branch: user.branch,
+                      department: user.department,
+                      acct: user.acct
+                    });
+                  }
+                  c();
+                });
+              }, function(){
+                clsDict['tutor'] = tutorList;
+                cb();
+              });
+            }else{
+              cb();
+            }
+          });
+        },
+        function(cb){ //标签
+          db.Tag.findAll({where: {courseId: courseId}}).success(function(tags){
+            if(tags.length){
+              async.eachSeries(tags, function(tag, c){
+                if(tagList.indexOf(tag.name) === -1){
+                  tagList.push(tag.name);
+                }
+                c();
+              }, function(){
+                clsDict['tag'] = tagList;
+                cb();
+              });
+            }else{
+              cb();
+            }
+          });
+        },
+        function(cb){ //助教
+          db.Assistant.findAll({where: {classId: cls.id}}).success(function(assists){
+            if(assists.length){
+              async.eachSeries(assists, function(assist, c){
+                if(assist.userId === userId){
+                  access = 1; //助教有编辑权限
+                }
+                db.User.find(assist.userId).success(function(user){
+                  assistList.push({
+                    name: user.name,
+                    imid: user.ccid,
+                    branch: user.branch,
+                    department: user.department,
+                    acct: user.acct
+                  });
+                  c();
+                });
+              }, function(){
+                clsDict['assistant'] = assistList;
+                cb();
+              });
+            }else{
+              cb();
+            }
+          });
+        },
+        function(cb){ //学员
+          db.Student.findAll({where: {classId: cls.id}}).success(function(students){
+            if(students.length){
+              async.eachSeries(students, function(student, c){
+                db.User.find(student.userId).success(function(user){
+                  db.Progress.findAll({where: {userId: student.userId, classId: cls.id, status: 1}}).success(function(pros){
+                    console.log('已经看完的章节数', pros.length);
+                    var progress = courseHours == 0 ? 0 : parseInt(pros.length / courseHours * 100);
+                    console.log('已经看完的百分比', progress);
+                    studentList.push({
+                      stuId: student.id,
+                      name: user.name,
+                      imid: user.ccid,
+                      progress: progress
+                    });
+                    c();
+                  });
+                });
+              }, function(){
+                clsDict['student'] = studentList;
+                cb();
+              });
+            }else{
+              cb();
+            }
+          });
+        },
+        function(cb){ //章节
+          var chapterLearning = 0, chapterFlag = 1;
+          db.Chapter.findAll({where: {courseId: courseId}}).success(function(chapters){
+            if(chapters.length){
+              async.eachSeries(chapters, function(chapter, c){
+                var chapterDict = {};
+                var chapterId = chapter.id;
+                chapterDict['learning'] = chapterLearning;
+                chapterDict['name'] = chapter.name;
+                chapterDict['intro'] = chapter.intro;
+                chapterDict['id'] = chapterId;
+                async.parallel([
+                  function(callback){ // 是否已经学完
+                    db.Progress.find({where:{userId: userId, classId: classId, chapterId: chapterId}}).success(function(progress){
+                      if(progress){
+                        if(chapterFlag){ //找到进度记录 记录第一个没看完那章
+                          if(progress.status === 0){
+                            chapterDict['learning'] = 1;
+                            chapterFlag = 0;
+                          }
+                        }
+                        chapterDict['progress'] = progress.status;
+                      } else { //找不到进度记录 说明还没看过这章
+                        if(chapterFlag){
+                          chapterDict['learning'] = 1;
+                          chapterFlag = 0;
+                        }
+                        chapterDict['progress'] = 0;
+                      }
+                      callback();
+                    });
+                  },
+                  function(callback){ // 附件
+                    var fileList = [];
+                    db.File.findAll({where:{chapterId: chapterId}}).success(function(files){
+                      if(files.length){
+                        for(var i = 0; i < files.length; i++){
+                          var file = files[i];
+                          if(file.isVideo){
+                            chapterDict['video'] = file;
+                            console.log('找到视频id', file.id);
+                          } else {
+                            console.log('找到附件id', file.id);
+                            fileList.push(file);
+                          }
+                        }
+                        chapterDict['files'] = fileList;
+                      }
+                      callback();
+                    });
+                  },
+                  function(callback){ // 时间
+                    db.ChapterData.find({where:{classId: classId, chapterId: chapterId}}).success(function(chapterData){
+                      chapterDict['startTime'] = '无';
+                      if(chapterData) {
+                        chapterDict['startTime'] = chapterData.startTime;
+                      }
+                      callback();
+                    });
+                  }
+                ], function(err, results){
+                  chapterList.push(chapterDict);
+                  c();
+                });
+              }, function(){
+                clsDict['chapter'] = chapterList;
+                cb();
+              });
+            }else{
+              cb();
+            }
+          });
+        }
+      ], function(err, results){
+        clsDict['access'] = access;
+        clsDict['content'] = content;
+        console.log('clsDict: ', clsDict);
+        res.render('course', { title: '多益培训平台', result: clsDict});
+      });
+    }else{
+      res.redirect('/courses');
+    }
+  });
+};
+
+
+
+
+
+/*
+* 管理页  默认是课程管理
+* 参数: search page
+* todo: 增加搜索项
+* */
+exports.manage = function(req, res){
+  var search = req.query.search || '';
+  search = strTrim(search);
+  var page = +req.query.page || 1; //第几页
+  if(page <= 0) page = 1;
+  console.log('当前第几页：', page);
+  var count = 10; //每页多少条数据
+  console.log('每页多少条数据：', count);
+  var len = 0; //搜索到的班次的个数
+  var Course = db.Course, Class = db.Class, Tag = db.Tag, Tutor = db.Tutor, User = db.User, Assistant = db.Assistant;
+  var resultDict = {}, retArr = [], totalClass = 0, totalPage = 0, searchClassIds = [], searchUserIds = [], score = 0;
+  var tagList = [], tutorList = [], courseIdList = [];
+  resultDict['currentPage'] = page;
+
+  if(search){ //++++++++++++++++++++++++++有搜索 搜索关键字 班次名 讲师
+    console.log('有搜索：', search);
+    resultDict['search'] = search;
+    var sqlSearch = '%';
+    for(var i = 0; i < search.length; i++){
+      sqlSearch += search[i] + '%';
+    }
+    console.log('数据库搜索：', sqlSearch);
+    async.series([
+      function(callback){//搜索课程名称 得到课程id列表 courseIdList
+        Course.findAll({where: ["name LIKE ?", sqlSearch]}).success(function(courses){
+          if(courses.length){
+            console.log('搜到课程名称');
+            for(var i = 0; i < courses.length; i++){
+              courseIdList.push(courses[i].id);
+            }
+            async.eachSeries(courseIdList, function(courseId, cb){
+              Class.findAll({where: {courseId: courseId}}).success(function(classes){
+                if(classes.length){ //搜索并合并班次id
+                  for(var j = 0; j < classes.length; j++){
+                    if(searchClassIds.indexOf(classes[j].id) === -1){
+                      searchClassIds.push(classes[j].id);
+                    }
+                  }
+                  cb();
+                }else{
+                  cb();
+                }
+              });
+            }, function(er){
+              callback();
+            });
+          }else{
+            callback();
+          }
+        });
+      },
+      function(callback){ //搜索班次名称 得到班次id列表 searchClassIds
+        Class.findAll({where: ["name LIKE ?", sqlSearch]}).success(function(classes){
+          if(classes.length){
+            console.log('搜到班次名称');
+            for(var i = 0; i < classes.length; i++){
+              if(searchClassIds.indexOf(classes[i].id) === -1){
+                searchClassIds.push(classes[i].id);
+              }
+            }
+            callback();
+          }else{
+            callback();
+          }
+        });
+      },
+      function(callback){//搜索讲师名称 得到用户id列表 searchUserIds
+        User.findAll({where: ["name LIKE ?", sqlSearch]}).success(function(users){
+          if(users.length){
+            for(var i = 0; i < users.length; i++){
+                console.log('搜到讲师名称');
+              if(searchUserIds.indexOf(users[i].id) === -1){
+                searchUserIds.push(users[i].id);
+              }
+            }
+            async.eachSeries(searchUserIds, function(userId, cb){
+              Tutor.findAll({where: {userId: userId}}).success(function(tutors){
+                if(tutors.length){ //合并班次id
+                  for(var j = 0; j < tutors.length; j++){
+                    if(searchClassIds.indexOf(tutors[j].classId) === -1){
+                      searchClassIds.push(tutors[j].classId);
+                    }
+                  }
+                  cb();
+                }else{
+                  cb();
+                }
+              });
+            }, function(er){
+              callback();
+            });
+          }else{
+            callback();
+          }
+        });
+      },
+      function(callback){ //上面获得了班次id列表searchClassIds  这里获取信息并分页
+        searchClassIds = searchClassIds.reverse();
+        len = searchClassIds.length; //总班次
+        console.log('搜索到总班次', len);
+        totalPage = Math.floor(len / count) + 1; //总页数
+        if(len % count === 0){
+          totalPage--;
+        }
+        console.log('搜索到总页数', totalPage);
+        var classIds = [];
+        if(len <= count){ //不到一页
+          classIds = searchClassIds;
+        }else if(page === 1){
+          classIds = searchClassIds.slice(0, count);
+        }else if(len - count*(page-1) >0){ //超过一页
+          classIds = searchClassIds.slice(count*(page-1), count*page);
+        }
+        //分页后 进行查询
+        if(!classIds.length){
+          resultDict['classes'] = [];
+          resultDict['totalClass'] = len;
+          resultDict['totalPage'] = 0;
+          resultDict['score'] = 0;
+          res.render('manage', { title: '多益培训平台', result: resultDict});
+          return;
+        }
+        async.eachSeries(classIds, function(classId, ccbb){
+          Class.find(classId).success(function(cls){
+            if(cls){ //这里的处理跟下面没搜索条件一样
+              var clsDict = {}, tutorList = [], tagList = [], assistList = [];
+              clsDict['className'] = cls.name;
+              clsDict['startTime'] = cls.startTime;
+              clsDict['endTime'] = cls.endTime;
+              clsDict['classId'] = fiveId((cls.id).toString());
+              var courseId = cls.courseId;
+              async.parallel([
+                function(cb){ //课时
+                  Course.find(courseId).success(function(course){
+                    if(course){
+                      clsDict['classTimes'] = course.chapters;
+                      clsDict['picture'] = course.picture;
+                      clsDict['courseId'] = courseId;
+                      clsDict['courseName'] = course.name;
+                      clsDict['score'] = score;
+                      cb();
+                    }else{
+                      cb();
+                    }
+                  });
+                },
+                function(cb){ //讲师
+                  Tutor.findAll({where: {classId: cls.id}}).success(function(tutors){
+                    if(tutors.length){
+                      async.eachSeries(tutors, function(tutor, c){
+                        User.find(tutor.userId).success(function(user){
+                          if(user){
+                            var tutorDictTmp = {};
+                            tutorDictTmp['tutorId'] = tutor.id;
+                            tutorDictTmp['tutorName'] = user.name;
+                            if(tutorList.indexOf(tutorDictTmp) === -1){
+                              tutorList.push(tutorDictTmp);
+                              //tutorList.push(user.name);
+                              c();
+                            }
+                          }else{
+                            c();
+                          }
+                        });
+                      }, function(){
+                        clsDict['tutor'] = tutorList;
+                        cb();
+                      });
+                    }else{
+                      cb();
+                    }
+                  });
+                },
+                function(cb){ //标签
+                  Tag.findAll({where: {courseId: courseId}}).success(function(tags){
+                    if(tags.length){
+                      async.eachSeries(tags, function(tag, c){
+                        if(tagList.indexOf(tag.name) === -1){
+                          tagList.push(tag.name);
+                        }
+                        c();
+                      }, function(){
+                        clsDict['tag'] = tagList;
+                        cb();
+                      });
+                    }else{
+                      cb();
+                    }
+                  });
+                }
+              ], function(err, results){
+                retArr.push(clsDict);
+                ccbb();
+              });
+            }else{
+              ccbb();
+            }
+          });
+        }, function(er){
+          callback();
+        });
+      }], function(err, results){
+      resultDict['classes'] = retArr;
+      resultDict['totalClass'] = len;
+      resultDict['totalPage'] = totalPage;
+      console.log('搜索返回结果：',resultDict);
+      res.render('manage', { title: '多益培训平台', result: resultDict});
+    });
+  }else{ //++++++++++++++++++++++++++没有搜索 直接进课程页面
+    Class.findAndCountAll({order: 'id desc', offset: count*(page-1), limit: count}).success(function(ret){
+      totalClass = ret.count;
+      totalPage = Math.floor(totalClass / count) + 1;
+      if(totalClass % count == 0){
+        totalPage--;
+      }
+      var classes = ret.rows;
+      if(classes.length){ //班次
+        async.eachSeries(classes, function(cls, callback){
+          var clsDict = {}, tutorList = [], tagList = [], assistList = [];
+          clsDict = {};
+          clsDict['className'] = cls.name;
+          clsDict['startTime'] = cls.startTime;
+          clsDict['endTime'] = cls.endTime;
+          clsDict['classId'] = fiveId((cls.id).toString());
+          var courseId = cls.courseId;
+          async.parallel([
+            function(cb){ //课时
+              Course.find(courseId).success(function(course){
+                if(course){
+                  clsDict['classTimes'] = course.chapters;
+                  clsDict['courseName'] = course.name;
+                  clsDict['picture'] = course.picture;
+                  clsDict['courseId'] = courseId;
+                  clsDict['score'] = score;
+                  cb();
+                }else{
+                  cb();
+                }
+              });
+            },
+            function(cb){ //讲师
+              Tutor.findAll({where: {classId: cls.id}}).success(function(tutors){
+                if(tutors.length){
+                  async.eachSeries(tutors, function(tutor, c){
+                    User.find(tutor.userId).success(function(user){
+                      if(user){
+                        var tutorDictTmp = {};
+                        tutorDictTmp['tutorId'] = tutor.id;
+                        tutorDictTmp['tutorName'] = user.name;
+                        if(tutorList.indexOf(tutorDictTmp) === -1){
+                          tutorList.push(tutorDictTmp);
+                          //tutorList.push(user.name);
+                          c();
+                        }
+                      }else{
+                        c();
+                      }
+                    });
+                  }, function(){
+                    clsDict['tutor'] = tutorList;
+                    console.log('tutor: ', tutorList)
+                    cb();
+                  });
+                }else{
+                  cb();
+                }
+              });
+            },
+            function(cb){ //标签
+              Tag.findAll({where: {courseId: courseId}}).success(function(tags){
+                if(tags.length){
+                  async.eachSeries(tags, function(tag, c){
+                    if(tagList.indexOf(tag.name) === -1){
+                      tagList.push(tag.name);
+                    }
+                    c();
+                  }, function(){
+                    clsDict['tag'] = tagList;
+                    cb();
+                  });
+                }else{
+                  cb();
+                }
+              });
+            }
+            //评分
+          ], function(err, results){
+            retArr.push(clsDict);
+            callback();
+          });
+        }, function(err){
+          resultDict['classes'] = retArr;
+          resultDict['totalClass'] = totalClass;
+          resultDict['totalPage'] = totalPage;
+          console.log('resultDict: ', resultDict);
+          res.render('manage', { title: '多益培训平台', result: resultDict});
+        });
+      }else{
+        resultDict['classes'] = [];
+        resultDict['totalClass'] = 0;
+        resultDict['totalPage'] = totalPage;
+        console.log('resultDict: ', resultDict);
+        res.render('manage', { title: '多益培训平台', result: resultDict});
+      }
+    });
+  }
+};
+
+
+
+
+
+
+/*
+* 管理页 讲师管理
+* 参数：无
+* todo: 增加评分
+* */
+exports.manageTutor = function(req, res){
+  var User = db.User, Tutor = db.Tutor, Score = db.Score, tutorList = [];
+  var retArr = [], resultDict = {}, tmpArr = [];
+  Tutor.findAll().success(function(tutors){
+    if(tutors.length){
+      for(var i = 0; i < tutors.length; i++){
+        var userId = tutors[i].userId, tutorId = tutors[i].id, tmpDict = {};
+        tmpDict['userId'] = userId;
+        tmpDict['tutorId'] = tutorId;
+        if(tmpArr.indexOf(userId) === -1){ //讲师不重复
+          tmpArr.push(userId);
+          tutorList.push(tmpDict);
+        }
+      }
+      async.eachSeries(tutorList, function(tutor, callback){
+        var userId = tutor.userId;
+        var tutorId = tutor.tutorId;
+        User.find(userId).success(function(user){
+          if(user){
+            resultDict = {};
+            resultDict['tutorId'] = tutorId; //讲师id
+            resultDict['name'] = user.name;
+            resultDict['score'] = 0; //0分 统计评分  这里先不做
+            retArr.push(resultDict);
+          }
+          callback();
+        });
+      }, function(err){
+        console.log('result', retArr);
+        res.render('managetutor', { title: '多益培训平台', result: {'result': retArr}});
+      });
+    }else{
+      res.render('managetutor', { title: '多益培训平台', result: {'result': retArr}});
+    }
+  });
+};
+
+
+
+//管理页 用户权限管理
+exports.manageUser = function(req, res){
+  var User = db.User, resultDict = {}, retArr = [];
+  User.findAll({where: {role: {gt: 0}}, order: 'role desc'}).success(function(users){
+    if(users.length){
+      for(var i = 0; i < users.length; i++){
+        resultDict = {};
+        resultDict['userId'] = users[i].id;
+        resultDict['name'] = users[i].name;
+        if(users[i].role === 7){
+          resultDict['admin'] = 1;
+          resultDict['tutor'] = 1;
+          resultDict['course'] = 1;
+        }else if(users[i].role === 6){
+          resultDict['admin'] = 1;
+          resultDict['tutor'] = 1;
+          resultDict['course'] = 0;
+        }else if(users[i].role === 5){
+          resultDict['admin'] = 1;
+          resultDict['tutor'] = 0;
+          resultDict['course'] = 1;
+        }else if(users[i].role === 4){
+          resultDict['admin'] = 1;
+          resultDict['tutor'] = 0;
+          resultDict['course'] = 0;
+        }else if(users[i].role === 3){
+          resultDict['admin'] = 0;
+          resultDict['tutor'] = 1;
+          resultDict['course'] = 1;
+        }else if(users[i].role === 2){
+          resultDict['admin'] = 0;
+          resultDict['tutor'] = 1;
+          resultDict['course'] = 0;
+        }else if(users[i].role === 1){
+          resultDict['admin'] = 0;
+          resultDict['tutor'] = 0;
+          resultDict['course'] = 1;
+        }
+        retArr.push(resultDict);
+      }
+      console.log('result', retArr);
+      res.render('manageuser', { title: '多益培训平台', result: {'result': retArr}});
+    }else{
+      res.render('manageuser', { title: '多益培训平台', result: {'result': retArr}});
+    }
+  });
+};

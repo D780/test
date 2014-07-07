@@ -1,0 +1,12 @@
+//标签 独立表
+module.exports = function(sequelize, DataTypes) {
+  var Tag = sequelize.define('Tag', {
+    courseId : {type: DataTypes.INTEGER, defaultValue: 0},              //标签所属的课程id
+    name: {type: DataTypes.STRING, defaultValue: ''},               //标签名
+    createdTime: {type: DataTypes.STRING, allowNull: true},      
+    updatedTime: {type: DataTypes.STRING, allowNull: true} 
+  },{
+    timestamps: false
+  });
+  return Tag;
+}

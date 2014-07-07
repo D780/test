@@ -1,0 +1,16 @@
+//评分表
+module.exports = function(sequelize, DataTypes) {
+  var Score = sequelize.define('Score', {
+    fromUserId : {type: DataTypes.INTEGER, defaultValue: 0},      //评分者用户id
+    toUserId : {type: DataTypes.INTEGER, defaultValue: 0},        //被评分者用户id 可选
+    classId : {type: DataTypes.INTEGER, defaultValue: 0},         //被评分的班次id 可选
+    examId : {type: DataTypes.INTEGER, defaultValue: 0},          //被评分的测试id 可选
+    courseId : {type: DataTypes.INTEGER, defaultValue: 0},        //被评分的课程id 可选
+    value : {type: DataTypes.INTEGER, defaultValue: 0},           //评分分值
+    createdTime: {type: DataTypes.STRING, allowNull: true},      
+    updatedTime: {type: DataTypes.STRING, allowNull: true} 
+  },{
+    timestamps: false
+  });
+  return Score;
+};

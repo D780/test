@@ -1,0 +1,16 @@
+//章节表
+module.exports = function(sequelize, DataTypes) {
+  var Chapter = sequelize.define('Chapter', {
+    courseId : {type: DataTypes.INTEGER, defaultValue: 0},             //章节所属的课程id
+    name: {type: DataTypes.STRING, defaultValue: ''},             //章节名
+    intro: {type: DataTypes.TEXT, defaultValue: ''},                   //章节简介
+    startTime: {type: DataTypes.STRING, defaultValue: ''},         //开始时间
+    endTime: {type: DataTypes.STRING, defaultValue: ''},           //结束时间
+    createdTime: {type: DataTypes.STRING, allowNull: true},      
+    updatedTime: {type: DataTypes.STRING, allowNull: true}   
+  },{
+    timestamps: false
+  });
+  return Chapter;
+}
+

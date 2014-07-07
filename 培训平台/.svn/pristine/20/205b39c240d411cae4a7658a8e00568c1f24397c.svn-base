@@ -1,0 +1,33 @@
+/**
+ * 工具
+ */
+define('tool', ['jquery', 'dialog', 'template'], function(require, exports, module){
+    
+    var $ = require('jquery');
+    var dialog = require('dialog');
+    var template = require('template');
+    
+    /**
+     * 将表单转成JSON对象
+     */
+    exports.formToJson = function(form){
+        var jsonResult = {};
+        var dataArray = $(form).serializeArray();
+        for(var i = 0; i < dataArray.length; i++){
+            var dataItem = dataArray[i];
+            var name = dataItem.name;
+            var value = dataItem.value;
+            if(name in jsonResult){
+                if(jsonResult[name] instanceof Array){
+                    jsonResult[name].push(value);
+                } else {
+                    jsonResult[name] = [ jsonResult[name] ];
+                }                
+            } else {
+                jsonResult[name] = value;
+            }
+        }
+        return jsonResult;
+    }
+
+});

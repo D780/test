@@ -1,0 +1,17 @@
+//测试文件表  包括视频 和 附件
+module.exports = function(sequelize, DataTypes) {
+  var TmpVideo = sequelize.define('TmpVideo', {
+    classId : {type: DataTypes.INTEGER, defaultValue: 0},              //所属的班次id
+    chapterId : {type: DataTypes.INTEGER, defaultValue: 0},            //所属的章节id  这里按照顺序来
+    userId : {type: DataTypes.INTEGER, defaultValue: 0},               //上传者用户id
+    name: {type: DataTypes.STRING, defaultValue: ''},             //文件名
+    url: {type: DataTypes.STRING, defaultValue: ''},              //原始文件url
+    flvurl: {type: DataTypes.STRING, defaultValue: ''},           //转换为flv格式的文件url
+    isVideo : {type: DataTypes.INTEGER, defaultValue: 0},              //1表示是视频 0表不是
+    createdTime: {type: DataTypes.STRING, allowNull: true},      
+    updatedTime: {type: DataTypes.STRING, allowNull: true} 
+  },{
+    timestamps: false
+  });
+  return TmpVideo;
+}

@@ -1,0 +1,14 @@
+//学员表
+module.exports = function(sequelize, DataTypes) {
+  var Student = sequelize.define('Student', {
+    userId : {type: DataTypes.INTEGER, defaultValue: 0},           //学员的用户id
+    classId : {type: DataTypes.INTEGER, defaultValue: 0},          //学员所属的班次id
+    progress: {type: DataTypes.INTEGER, defaultValue: 0},          //学习进度百分比 精确到整数
+    learned : {type: DataTypes.INTEGER, defaultValue: 0},          //是否已经学完了本课程 1表示学完
+    createdTime: {type: DataTypes.STRING, allowNull: true},      
+    updatedTime: {type: DataTypes.STRING, allowNull: true}   
+  },{
+    timestamps: false
+  });
+  return Student;
+};

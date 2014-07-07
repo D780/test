@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head lang="zh-cn">
+    <meta charset="UTF-8">
+    <title>多益培训</title>
+    <link href="/css/comm.css" rel="stylesheet">
+</head>
+<body>
+<div class="header">
+    <div class="wrap">
+        <div class="nav">
+            <div class="nav-wrap">
+                <div class="nav-list">
+                    <a href="javascript:;">首页</a>
+                    <a href="javascript:;">课程</a>
+                    <a href="javascript:;">管理</a>
+                </div>
+            </div>
+        </div>
+        <div class="logo">
+            <img src="/img/logo.png" alt="多益培训"/>
+        </div>
+        <div class="menu">
+            <div class="menu-bd">
+                <span>当前登录：罗维</span>
+                <a href="javascript:;">退出</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="content wrap">
+    <!--选项卡 开始-->
+    <div class="ui-tab">
+        <a href="javascript:;" class="current">课程介绍</a>
+        <a href="javascript:;">课程内容</a>
+        <a href="javascript:;">课程学员</a>
+    </div>
+    <!--选项卡 结束-->
+    <!--课程管理 开始-->
+    <div class="manage">
+        <div class="bd">
+            <div class="bd-t">
+                <div class="ui-search ui-search-s fn-right">
+                    <a href="javascript:;">搜索</a>
+                    <input type="text" placeholder="搜索"/>
+                </div>
+                <h3>课程班次</h3>
+            </div>
+            <div class="tb">
+                <table width="100%" class="ui_table">
+                    <thead>
+                    <tr>
+                        <th>课程名称</th>
+                        <th>编号</th>
+                        <th>班次</th>
+                        <th>课时</th>
+                        <th>开课时间</th>
+                        <th>讲师</th>
+                        <th>评分</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><a href="#">编程范式</a></td>
+                        <td>000123</td>
+                        <td>13212</td>
+                        <td>16小时</td>
+                        <td>12/12 - 12/24</td>
+                        <td><a href="#">张学友</a></td>
+                        <td>1.0</td>
+                        <td class="operation"><a href="#">删除</a><a href="#">新开班次</a></td>
+                    </tr>
+                    <tr class="even">
+                        <td><a href="#">编程范式</a></td>
+                        <td>000123</td>
+                        <td>13212</td>
+                        <td>16小时</td>
+                        <td>12/12 - 12/24</td>
+                        <td><a href="#">张学友</a></td>
+                        <td>1.0</td>
+                        <td class="operation"><a href="#">删除</a><a href="#">新开班次</a></td>
+                    </tr>
+                    <tr>
+                        <td><a href="#">编程范式</a></td>
+                        <td>000123</td>
+                        <td>13212</td>
+                        <td>16小时</td>
+                        <td>12/12 - 12/24</td>
+                        <td><a href="#">张学友</a></td>
+                        <td>1.0</td>
+                        <td class="operation"><a href="#">删除</a><a href="#">新开班次</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="btn fn-clear">
+                <a href="javascript:;" class="ui-button ui-button-lreg fn-right">添加课程</a>
+            </div>
+        </div>
+        <div class="ft">
+            <div class="ui_page fn-right">
+                <a href="#">上一页</a>
+                <a href="#" class="current">1</a>
+                <a href="#">2</a>
+                <span>...</span>
+                <a href="#">10</a>
+                <a href="#">下一页</a>
+            </div>
+        </div>
+    </div>
+    <!--课程管理 结束-->
+    <!--讲师管理 开始-->
+    <div class="manage">
+        <div class="bd">
+            <div class="bd-t">
+                <h3>讲师列表</h3>
+            </div>
+            <div class="tb" style="width:40%">
+                <table width="100%" class="ui_table">
+                    <thead>
+                    <tr>
+                        <th>讲师姓名</th>
+                        <th>课程综合评分</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><a href="javascript:;">李湘湘</a></td>
+                            <td>4.8</td>
+                        </tr>
+                        <tr class="even">
+                            <td><a href="javascript:;">李湘湘</a></td>
+                            <td>4.8</td>
+                        </tr>
+                        <tr>
+                            <td><a href="javascript:;">李湘湘</a></td>
+                            <td>4.8</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="btn fn-clear" style="margin:20px 0 0">
+                    <a href="javascript:;" class="ui-button ui-button-lreg fn-right">添加课程</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--讲师管理 结束-->
+    <!--讲师详情 开始-->
+    <div class="manage">
+        <div class="bd">
+            <div class="bd-t">
+                <h3>讲师详情</h3>
+            </div>
+            <table class="details">
+                    <tr>
+                        <th class="t">姓名：</th><td>李湘湘</td>
+                    </tr>
+                    <tr>
+                        <th class="t">所属部门：</th><td>总裁办 - 人事部</td>
+                    </tr>
+                    <tr>
+                        <th class="t">岗位：</th><td>人力资源培训</td>
+                    </tr>
+                    <tr>
+                        <th class="t">教授课程：</th>
+                        <td class="tb">
+                                <table width="100%" class="ui_table">
+                                    <thead>
+                                        <tr>
+                                            <th>课程名称</th>
+                                            <th>班次</th>
+                                            <th>开课状态</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>编程规范</td>
+                                            <td>20141122</td>
+                                            <td>未结束</td>
+                                        </tr>
+                                        <tr class="even">
+                                            <td>编程规范</td>
+                                            <td>20141122</td>
+                                            <td>未结束</td>
+                                        </tr>
+                                        <tr>
+                                            <td>编程规范</td>
+                                            <td>20141122</td>
+                                            <td>未结束</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                        </td>
+
+                    </tr>
+            </table>
+
+        </div>
+    </div>
+    <!--讲师详情 结束-->
+    <!--课程管理 开始-->
+    <div class="manage">
+        <div class="bd">
+            <div class="bd-t">
+                <h3>特殊用户权限</h3>
+            </div>
+            <div class="tb">
+                <table width="100%" class="ui_table">
+                    <thead>
+                        <tr>
+                            <th>姓名</th>
+                            <th>课程管理权限</th>
+                            <th>讲师管理权限</th>
+                            <th>系统管理员权限</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><a href="#">罗维</a></td>
+                        <td><b>yes</b></td>
+                        <td><i>no</i></td>
+                        <td><i>no</i></td>
+                        <td class="operation"><a href="#">编辑</a><a href="#">删除</a></td>
+                    </tr>
+                    <tr class="even">
+                        <td><a href="#">罗维</a></td>
+                        <td><b>yes</b></td>
+                        <td><b>yes</b></td>
+                        <td><b>yes</b></td>
+                        <td class="operation"><a href="#">编辑</a><a href="#">删除</a></td>
+                    </tr>
+                    <tr>
+                        <td><a href="#">罗维</a></td>
+                        <td><i>no</i></td>
+                        <td><i>no</i></td>
+                        <td><i>no</i></td>
+                        <td class="operation"><a href="#">编辑</a><a href="#">删除</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="btn fn-clear">
+                <a href="javascript:;" class="ui-button ui-button-lreg fn-right">添加</a>
+            </div>
+        </div>
+    </div>
+    <!--课程管理 结束-->
+</div>
+
+</body>
+</html>

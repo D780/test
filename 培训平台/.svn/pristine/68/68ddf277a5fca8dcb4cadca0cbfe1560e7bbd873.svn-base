@@ -1,0 +1,114 @@
+/*
+ * created by Celavie 2014.5
+ * 配置文件
+ */
+
+exports = module.exports;
+
+//连接数据库
+exports.db = {
+  dbname:     'training',
+  username:   'root',
+  password:   'fuck',
+  host:       'localhost',
+  port:       3306
+};
+
+//henhaoji邮箱登录验证
+exports.hhjLogin =  {
+  henhaojiurl:   'http://121.9.242.65:10802/func/iface.aspx',
+  passport:      '2fe1b59edd88452ca5af3f5af8cb142e',
+  act:           'checkpass',
+  encrypt:       'false',
+  forcehenhaoji: 'true'
+};
+
+//统一登录
+exports.allLogin = {
+  authInfoUrl:  'http://testmail.oa.com/func/api.aspx?act=verify_code',
+  authPst:      'FDA10D706E28D8E65F3D3D9751C5AFD0', //'jslfjslyh255nujmiksxtgbe'
+  authLoginUrl: 'http://testmail.oa.com/func/view.aspx?groupid=mail&act=login&' + 
+                'callback=http://testtraining.oa.com:8011/login',
+  authAdminLoginUrl: 'http://testmail.oa.com/func/view.aspx?groupid=mail&act=login&' + 
+                'callback=http://testtraining.oa.com:8011/adminlogin',
+  logoutUrl: 'http://testmail.oa.com/func/view.aspx?groupid=mail&act=login&' +
+             'logout=true&callback=http://testtraining.oa.com:8011/logout'
+};
+
+
+exports.searchUser = {
+  //搜索用户branch ccid
+  searchUserUrl:  'http://mail.oa.com/func/api.aspx?pst=jslfjslyh255nujmiksxtgbe' +
+                  '&act=oausers&json=true&search=',
+  //搜索各个部门里所有的人员
+  jidiDepartUser: 'http://jidi.com/hr/api/api.ashx?action=retalldeptusers' + 
+                  '&pwd=69b2d12f7ef04cb3b1660474497a4a74'
+};
+
+//部门分类信息 branch : department
+//应该有接口才合理 组织架构可能变动
+exports.department = {
+  'IT部':          '总裁办',
+  '行政部':        '总裁办',
+  '人事部':        '总裁办',
+  '财务':          '财务部',
+  '游戏服务器端':  '程序部',
+  '综合软件组':    '程序部',
+  '运维组':        '程序部',
+  '游戏客户端':    '程序部',
+  '神武':          '游戏一部',
+  '梦想之旅':      '游戏一部',
+  '神武战略版':    '游戏一部',
+  '逍遥':          '游戏二部',
+  '希望之翼':      '游戏二部',
+  '马尔斯':        '游戏二部',
+  '梦想世界':      '游戏二部',
+  '英雄':          '游戏二部',
+  '梦想帝王':      '游戏三部',
+  '手机游戏组':    '游戏三部',
+  '魔幻航海':      '游戏三部',
+  '魔幻航海':      '游戏三部',
+  '诸神':          '游戏四部',
+  '命运之轮':      '游戏五部',
+  '前端与设计':    '网站产品部',
+  '网站程序员':    '网站产品部',
+  '编辑与SEO':     '网站产品部',
+  '策划策助':      '网站产品部',
+  '移动程序员':    '网站产品部',
+  '项目组':        '产品运营部',
+  '广告组':        '产品运营部',
+  '网站组':        '产品运营部',
+  '客服部':        '产品运营部',
+  '渠道组':        '产品运营部',
+  '媒介组':        '产品运营部',
+  '设计组':        '产品运营部',
+  '成都美术':      '成都美术部',
+  '成都其他':      '成都行政部',
+  '成都策划':      '成都策划部',
+  '成都程序':      '成都程序部',
+  '客服部':        '派遣客服部',
+  '一部':          '后勤',
+  '二部':          '后勤'
+};
+
+/* 截止至2014年5月31日的部门信息
+[ '派遣客服部',
+  '后勤',
+  '美术二部',
+  '成都程序部',
+  '财务部',
+  '游戏四部',
+  '程序部',
+  '美术一部',
+  '网站产品部',
+  '综合设计部',
+  '成都行政部',
+  '成都美术部',
+  '游戏二部',
+  '游戏三部',
+  '成都策划部',
+  '总裁办',
+  '游戏一部',
+  '游戏五部',
+  '产品运营部' ]
+*/

@@ -1,0 +1,32 @@
+/**
+ * 课程列表
+ */
+seajs.use(['jquery', 'dialog'], function(){
+	/**
+	 * 搜索关键字
+	 * @param keyword
+	 */
+	function search(keyword){
+		window.location = '/courses?search=' + encodeURIComponent(keyword);
+	}
+
+	// 搜索按钮
+	$('.btn-search').click(function(e){
+		var keyword = $('#input-search').val();
+		if(keyword.length < 0){
+			return;
+		}
+		search(keyword);
+	});
+
+	// 回车搜索
+	$('#input-search').keyup(function(e){
+		if(e.keyCode == 13){
+			var keyword = $('#input-search').val();
+			if(keyword.length < 0){
+				return;
+			}
+			search(keyword);
+		}
+	});
+});

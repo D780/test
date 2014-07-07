@@ -1,0 +1,7 @@
+<!--选项卡 开始-->
+<div class="ui-tab">
+    <a href="/manage" target="#tab-content-class" class="current">课程管理</a>
+    <a href="/managetutor" target="#tab-content-tutor">讲师管理</a>
+    <a href="/manageuser" target="#tab-content-user">用户权限管理</a>
+</div>
+<!--选项卡 结束-->

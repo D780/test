@@ -1,0 +1,217 @@
+<!--课程管理 开始-->
+<div class="manage">
+    <div class="bd">
+        <div class="bd-t">
+            <div class="ui-search ui-search-s fn-right">
+                <a class="btn-search" href="###">搜索</a>
+                <input id="input-search" type="text" placeholder="搜索"/>
+            </div>
+            <h3>课程班次</h3>
+        </div>
+        <div class="tb">
+            <table width="100%" class="ui_table">
+                <thead>
+                <tr>
+                    <th width="15%">课程名称</th>
+                    <th>编号</th>
+                    <th>班次</th>
+                    <th>课时</th>
+                    <th>开课时间</th>
+                    <th>讲师</th>
+                    <th>评分</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% for(var i = 0; i < result.classes.length; i++) {
+                    var item = result.classes[i] %>
+                    <tr <% if(i % 2) { %>class="even"<% } %> class-data="<%= JSON.stringify(item) %>">
+                        <td><a href="/course?id=<%= item.classId %>"><%= item.courseName %></a></td>
+                        <td><%= item.classId %></td>
+                        <td><%= item.className %></td>
+                        <td><%= item.classTimes %>课时</td>
+                        <td><%= item.startTime %> 至 <%= item.endTime %></td>
+                        <td>
+                            <% if(item.tutor){ for(var j = 0; j < Math.min(item.tutor.length, 3); j++) {
+                                var tutor = item.tutor[j]; %>
+                                <a href="###" class="btn-tutor-info" tutor-id="<%= tutor.tutorId %>"><%= tutor.tutorName %></a><br/>
+                            <% }} %>
+                        </td>
+                        <td><%= item.score %></td>
+                        <td class="operation"><a href="###" class="btn-delete-class">删除</a><a href="###" class="btn-add-class">新开班次</a></td>
+                    </tr>
+                <% } %>
+                </tbody>
+            </table>
+        </div>
+        <div class="btn fn-clear">
+            <a href="###" class="btn-new-course ui-button ui-button-lreg fn-right">添加课程</a>
+        </div>
+    </div>
+
+    <% if(result.totalPage > 1) { %>
+    <div class="ui_page fn-right">
+        <a <% if(result.currentPage > 1) { %>href="/manage?page=<%= result.currentPage - 1 %><% if (result.search) { %>&search=<%= result.search %><% } %>" page="<%= result.currentPage - 1 %>"<% } else { %>href="###"<% } %>>上一页</a>
+        <% if(result.currentPage - 2 > 1) { %>
+            <a href="/manage?page=1<% if (result.search) { %>&search=<%= result.search %><% } %>" page="1">1</a>
+            <% if(result.currentPage - 3 != 1) { %>
+                <span>...</span>
+            <% } %>
+        <% } %>
+        <% for(var i = Math.max(result.currentPage - 2, 1); i <= Math.min(result.totalPage, result.currentPage + 2); i++) { %>
+            <a <% if(i == result.currentPage) { %>href="###" class="current"<% } else { %> href="/manage?page=<%= i %><% if (result.search) { %>&search=<%= result.search %><% } %>"<% } %> page="<%= i %>"><%= i %></a>
+        <% } %>
+        <% if(result.currentPage + 2 < result.totalPage) { %>
+            <% if(result.currentPage + 3 != result.totalPage) { %>
+                <span>...</span>
+            <% } %>
+            <a href="/manage?page=<%= result.totalPage %><% if (result.search) { %>&search=<%= result.search %><% } %>" page="<%= result.totalPage %>"><%= result.totalPage %></a>
+        <% } %>
+        <a <% if(result.currentPage < result.totalPage) { %>href="/manage?page=<%= result.currentPage + 1 %><% if (result.search) { %>&search=<%= result.search %><% } %>" page="<%= result.currentPage + 1 %>"<% } else { %>href="###"<% } %>>下一页</a>
+    </div>
+    <% } %>
+</div>
+<!--课程管理 结束-->
+
+<script type="text/html" id="template-add-class">
+    <div class="add_class">
+        <form class="form-add-class">
+            <div class="item fn-hide">
+                <strong>课程ID：</strong>
+                <input name="courseId" type="text" value="{{courseId}}" size="40" >
+            </div>
+            <div class="item">
+                <strong>课程名称：</strong>
+                <input type="text"  class="disabled" disabled="disabled" value="{{courseName}}" size="40" >
+            </div>
+            <div class="item write-input-box">
+                <strong>标签：</strong>
+                <input type="text" class="disabled" disabled="disabled" value="{{each tag as t}}{{t}}; {{/each}}"/>
+            </div>
+            <div class="item">
+                <strong>课时：</strong>
+                <input type="text" class="disabled" disabled="disabled" value="{{classTimes}}" size="10" >
+                <span class="hours">课时</span>
+            </div>
+            <div class="item_two">
+                <div class="item">
+                    <strong>开课时间：</strong>
+                    <input name="startTime" type="text" class="input-date" size="10">
+                    至
+                    <input name="endTime" type="text" class="input-date" size="10">
+                </div>
+                <div class="item">
+                    <strong>班次：</strong>
+                    <input name="className" type="text">
+                </div>
+            </div>
+            <div class="item write-input-box">
+                <strong>讲师：</strong>
+                <div class="item-input fn-clear">
+                    <div class="item-adr-add">
+                        <input type="text"><span></span>
+                        <div class="slideDiv fn-hide">
+                        </div>
+                    </div>
+                </div>
+                <input name="tutor" type="text" class="item-real-input fn-hide"/>
+            </div>
+            <div class="item write-input-box">
+                <strong>课程助理：</strong>
+                <div class="item-input fn-clear">
+                    <div class="item-adr-add">
+                        <input type="text"><span></span>
+                        <div class="slideDiv fn-hide">
+                        </div>
+                    </div>
+                </div>
+                <input name="assistant" type="text" class="item-real-input fn-hide"/>
+            </div>
+        </form>
+
+        <div class="add_set">
+            <div class="imgbox">
+                <img src="{{if picture}}{{picture}}{{else}}/img/course.jpg{{/if}}"/>
+            </div>
+            <a href="###" class="btn-confirm-class ui-button ui-button-lreg">保存</a>
+            <a i="close" href="###" class="btn-cancel-class ui-button ui-button-lgrey">取消</a>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="template-new-course">
+    <div class="add_class">
+        <form class="form-new-course">
+            <div class="item">
+                <strong>课程名称：</strong>
+                <input name="courseName" type="text" size="40" >
+            </div>
+            <div class="item write-input-box">
+                <strong>标签：</strong>
+                <div class="item-input item-input-tag fn-clear">
+                    <div class="item-adr-add">
+                        <input type="text"><span></span>
+                        <div class="slideDiv fn-hide">
+                        </div>
+                    </div>
+                </div>
+                <input name="tag" type="text" class="item-real-input fn-hide" />
+            </div>
+            <div class="item">
+                <strong>课时：</strong>
+                <input name="classTimes" type="text" size="10" >
+                <span class="hours">课时</span>
+            </div>
+            <div class="item_two">
+                <div class="item">
+                    <strong>开课时间：</strong>
+                    <input name="startTime" type="text" class="input-date" size="10">
+                    至
+                    <input name="endTime" type="text" class="input-date" size="10">
+                </div>
+                <div class="item">
+                    <strong>班次：</strong>
+                    <input name="className" type="text">
+                </div>
+            </div>
+            <div class="item write-input-box">
+                <strong>讲师：</strong>
+                <div class="item-input fn-clear">
+                    <div class="item-adr-add">
+                        <input type="text"><span></span>
+                        <div class="slideDiv fn-hide">
+                        </div>
+                    </div>
+                </div>
+                <input name="tutor" type="text" class="item-real-input fn-hide" />
+            </div>
+            <div class="item write-input-box">
+                <strong>课程助理：</strong>
+                <div class="item-input fn-clear">
+                    <div class="item-adr-add">
+                        <input type="text"><span></span>
+                        <div class="slideDiv fn-hide">
+                        </div>
+                    </div>
+                </div>
+                <input name="assistant" type="text" class="item-real-input fn-hide"/>
+            </div>
+            <input name="picture" type="text" class="fn-hide">
+        </form>
+
+        <div class="add_set">
+            <div class="imgbox">
+                <img src="/img/course.jpg"/>
+                <div class="imgbg"></div>
+                <form class="form-upload-pic">
+                    <a href="###" class="btn-upload-pic">上传图片</a>
+                    <input name="uploadFile" type="file" accept="image/jpeg, image/png" class="input-upload-pic" />
+                </form>
+            </div>
+            <a href="###" class="btn-confirm-course ui-button ui-button-lreg">保存</a>
+            <a i="close" href="###" class="btn-cancel-course ui-button ui-button-lgrey">取消</a>
+        </div>
+    </div>
+</script>
+
+<% include tutor_info %>

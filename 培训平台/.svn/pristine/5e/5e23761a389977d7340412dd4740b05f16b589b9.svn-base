@@ -1,0 +1,76 @@
+
+/*
+ * 可能用得上的函数
+ *
+ */
+
+
+//中国标准时间 返回字符串
+
+var CSTDateString = function(date) {
+  var addZero = function(num){
+    num += "";
+    return num.replace(/^(\d)$/,"0$1");
+  };
+  var formatMilli = function(str){
+    if(str.length === 2){
+      return '0' + str;
+    }else if(str.length === 1){
+      return '00' + str;
+    }else{
+      return str;
+    }
+  }
+  var year = date.getFullYear();
+  var month = addZero(date.getMonth()+1);  //两位
+  var day = addZero(date.getDate());       //两位
+  var hour = addZero(date.getHours());     //两位
+  var minute = addZero(date.getMinutes()); //两位
+  var second = addZero(date.getSeconds()); //两位
+  var milliseconds = date.getMilliseconds();
+  var milli = formatMilli(milliseconds.toString()); //三位
+  return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second + '.' + milli;
+};
+
+//Unix时间戳 返回浮点数 精确到毫秒
+var CSTDateFloat = function(str){
+  var index = str.indexOf('.');
+  var noMilli = str.slice(0, index);
+  var milli = +str.slice(index+1) / 1000;
+  return (new Date(noMilli.replace(/-/g, '/'))).getTime()/1000 + milli;
+};
+
+//Unix时间戳 返回长整型 精确到毫秒
+var CSTDateInt = function(str){
+  var index = str.indexOf('.');
+  var noMilli = str.slice(0, index);
+  var milli = +str.slice(index+1);
+  return (new Date(noMilli.replace(/-/g, '/'))).getTime() + milli;
+};
+
+//去除前后空格
+var strTrim = function (str){
+  return str.replace(/^(\s|\u00A0)+/,'').replace(/(\s|\u00A0)+$/,'');
+};
+
+//返回五位数的编号
+var fiveId = function(str){
+  if(str.length === 4){
+    return '0' + str;
+  }else if(str.length === 3){
+    return '00' + str;
+  }else if(str.length === 2){
+    return '000' + str;
+  }else if(str.length === 1){
+    return '0000' + str;
+  }
+  return str;
+};
+
+
+exports.CSTDateString = CSTDateString;
+exports.CSTDateFloat = CSTDateFloat;
+exports.CSTDateInt = CSTDateInt;
+exports.strTrim = strTrim;
+exports.fiveId = fiveId;
+

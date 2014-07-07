@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head lang="zh-cn">
+    <meta charset="UTF-8">
+    <title>多益培训</title>
+    <link href="/css/comm.css" rel="stylesheet">
+</head>
+<body>
+    <div class="header">
+        <div class="wrap">
+            <div class="nav">
+                <div class="nav-wrap">
+                    <div class="nav-list">
+                        <a href="javascript:;">首页</a>
+                        <a href="javascript:;">课程</a>
+                        <a href="javascript:;">管理</a>
+                    </div>
+                </div>
+            </div>
+            <div class="logo">
+                <img src="/img/logo.png" alt="多益培训"/>
+            </div>
+            <div class="menu">
+                <div class="menu-bd">
+                    <span>当前登录：罗维</span>
+                    <a href="javascript:;">退出</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content wrap">
+        <!--正在学习 开始-->
+        <div class="my-course">
+            <div class="title">
+                <h3>正在学习</h3>
+            </div>
+            <div class="list">
+                <dl>
+                    <dt><a href="javascript:;"><img src="/img/course.jpg" alt="" width="246" height="164"/></a></dt>
+                    <dd>
+                        <h2><a href="javascript:;">设计规范</a></h2>
+                        <div class="ui-label">
+                            <div class="bd fn-clear">
+                                <div class="item">程序</div>
+                                <div class="item">游戏技术</div>
+                                <div class="item">服务端</div>
+                                <div class="item">程序</div>
+                                <div class="item">游戏技术</div>
+                                <div class="item">服务端</div>
+                            </div>
+                        </div>
+                        <p class="intr">课程简介：这是一门教授编程规范的课程，主要让学员了解基础的规范、模式。本门课程包括以下几节：html代码规范、JS代码......</p>
+                        <p>讲师：沈永乐<em>|</em>20课时<em>|</em>课程进度：80%</p>
+                        <a href="javascript:;" class="ui-button ui-button-lreg">继续学习</a>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><a href="javascript:;"><img src="/img/course.jpg" alt="" width="246" height="164"/></a></dt>
+                    <dd>
+                        <h2><a href="javascript:;">设计规范</a></h2>
+                        <div class="ui-label">
+                            <div class="bd fn-clear">
+                                <div class="item">程序</div>
+                                <div class="item">游戏技术</div>
+                                <div class="item">服务端</div>
+                                <div class="item">程序</div>
+                                <div class="item">游戏技术</div>
+                                <div class="item">服务端</div>
+                            </div>
+                        </div>
+                        <p class="intr">课程简介：这是一门教授编程规范的课程，主要让学员了解基础的规范、模式。本门课程包括以下几节：html代码规范、JS代码......</p>
+                        <p>讲师：沈永乐<em>|</em>20课时<em>|</em>课程进度：80%</p>
+                        <a href="javascript:;" class="ui-button ui-button-lreg">继续学习</a>
+                    </dd>
+                </dl>
+            </div>
+            <!--没有课程 开始-->
+            <div class="not fn-hide">
+                <p>还没有学习的课程，<a href="javascript:;">快来选课！</a></p>
+            </div>
+            <!--没有课程 结束-->
+        </div>
+        <!--正在学习 结束-->
+    </div>
+
+</body>
+</html>

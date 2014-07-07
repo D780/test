@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>测试上传文件</title>
+<script type="text/javascript" src="/javascripts/jquery.js"></script>
+<script type="text/javascript" src="/javascripts/jquery.form.js" ></script>
+</head>
+<script>
+</script>
+
+<style>
+</style>
+
+<body>
+
+<!--  测试课程图片上传
+直接用form提交
+<form action='/admin/uploadpic' method='post' enctype="multipart/form-data">
+  <input type='hidden' name='courseId' value="1" />
+  <input type='hidden' name='courseId2' value="2" />
+  <input type='file' name='uploadFile' />
+  <input type='submit' value='提交' />
+</form>
+用jquery.form提交
+<form id="ajaxform">
+  <input type='file' name='uploadFile' />
+  <input type='button' id='uploadSubmit' value='上传图片' />
+</form>
+
+<script>
+$('#uploadSubmit').click(function(){
+  var ajaxOpt =  { 
+        url :      '/admin/uploadpic',    
+        type:      'POST',        
+        data:      {courseId: 2},
+        success:function(data,statue,xhr){
+            var obj = $.parseJSON(data);
+            if(obj.code === 1){
+                alert(obj.msg);
+            }else{
+                alert(obj.msg);         
+            }
+        }
+  }; 
+  $("#ajaxform").ajaxSubmit(ajaxOpt);
+});
+
+</script>
+-->
+
+<form id="ajaxform">
+  <input type='file' name='uploadFile' />
+  <input type='button' id='uploadSubmit' value='上传' />
+</form>
+
+<script>
+$('#uploadSubmit').click(function(){
+  var ajaxOpt =  { 
+        url :      '/admin/uploadvideo',    
+        type:      'POST',        
+        data:      {courseId: 3, chapterId: 2, userId: 1},
+        success:function(data,statue,xhr){
+            var obj = $.parseJSON(data);
+            if(obj.code === 1){
+                alert(obj.msg);
+            }else{
+                alert(obj.msg);         
+            }
+        }
+  }; 
+  $("#ajaxform").ajaxSubmit(ajaxOpt);
+});
+
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>测试视频播放</title>
+</head>
+<link type="text/css" rel="stylesheet" href="/media/mediaelementplayer.min.css" />
+<script type="text/javascript" src="/javascripts/jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src="/media/mediaelement-and-player.min.js"></script>
+<script>
+  $(document).ready(function(){
+    $('audio,video').mediaelementplayer();
+  })
+</script>
+<body>
+
+<div id="video" style="display:block">
+<video src="/test/980f0afeb277e902c448022dac9c3904.MTS" controls="controls" width="480" height="360"></video>
+</div>
+<!--
+<audio src='/test/da9829577a6b42cf15317f5463d3094e.mp3'></audio>
+<video id="videoplayer" type="video/mp4" controls="controls" width="480" height="360" src='/test/07a75be7dfdccf53f1ca653ce47712c7.mp4'></video> 
+-->
+
+
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+<script id="template-dialog-big" type="text/html">
+    <div i="dialog" class="ui_layer ui_layer_big">
+        <div i="header" class="layerhead"><a i="close" href="#" class="layerclose">关闭</a><span i="title"></span></div>
+        <div i="content" class="layercont fn-clear"></div>
+        <div i="footer" class="layerfoot">
+            <div i="statusbar" class="ui-dialog-statusbar"></div>
+            <a i="button" href="###" class="ui-button ui-button-lgrey"></a>
+        </div>
+    </div>
+</script>

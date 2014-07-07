@@ -1,0 +1,15 @@
+//班次表 课次表  独立表
+module.exports = function(sequelize, DataTypes) {
+  var Class = sequelize.define('Class', {
+    courseId : {type: DataTypes.INTEGER, defaultValue: 0},             //班次所属的课程id
+    name: {type: DataTypes.STRING, defaultValue: ''},             //课次名 班次名
+    startTime: {type: DataTypes.STRING, defaultValue: ''},         //开课时间
+    endTime: {type: DataTypes.STRING, defaultValue: ''},           //结束时间
+    status: {type: DataTypes.INTEGER, defaultValue: 1},                //开课状态 1是还没结束 0表示结束
+    createdTime: {type: DataTypes.STRING, allowNull: true},      
+    updatedTime: {type: DataTypes.STRING, allowNull: true} 
+  },{
+    timestamps: false
+  });
+  return Class;
+}

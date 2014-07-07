@@ -1,0 +1,171 @@
+<div class="editbox editing fn-hide">
+    <div class="add_class">
+        <form class="form-edit-info">
+            <div class="item fn-hide">
+                <strong>课程ID：</strong>
+                <input name="classId" type="text" value="<%= result.classId %>" size="40" >
+            </div>
+            <div class="item">
+                <strong>课程名称：</strong>
+                <input name="courseName" type="text" value="<%= result.courseName %>" size="40" >
+            </div>
+            <div class="item write-input-box">
+                <strong>标签：</strong>
+                <div class="item-input item-input-tag fn-clear">
+                    <% for(var j = 0; j < result.tag.length; j++){ %>
+                    <div class="item-adr">
+                        <em><%= result.tag[j] %></em>
+                    </div>
+                    <% } %>
+                    <div class="item-adr-add">
+                        <input type="text"><span></span>
+                        <div class="slideDiv fn-hide">
+                        </div>
+                    </div>
+                </div>
+                <input name="tag" type="text" class="item-real-input fn-hide" value="<% for(var j = 0; j < result.tag.length; j++){ %><%= result.tag[j] %><% if(j != result.tag.length - 1) { %> <% } %><% } %>"/>
+            </div>
+            <div class="item">
+                <strong>课时：</strong>
+                <input name="classTimes" type="text" value="<%= result.classTimes %>" size="10" >
+                <span class="hours">课时</span>
+            </div>
+            <div class="item_two">
+                <div class="item">
+                    <strong>开课时间：</strong>
+                    <input name="startTime" type="text" class="input-date" value="<%= result.startTime %>" size="10">
+                    至
+                    <input name="endTime" type="text" class="input-date" value="<%= result.endTime %>" size="10">
+                </div>
+                <div class="item">
+                    <strong>班次：</strong>
+                    <input name="className" type="text" value="<%= result.className %>">
+                </div>
+            </div>
+            <div class="item write-input-box">
+                <strong>讲师：</strong>
+                <div class="item-input fn-clear">
+                    <% for(var j = 0; j < result.tutor.length; j++) { var item = result.tutor[j]; %>
+                    <div class="item-adr">
+                        <em name="<%= item.name %>"
+                            imid="<%= item.imid %>"
+                            branch="<%= item.branch %>"
+                            acct="<%= item.acct %>"
+                            department="<%= item.department %>">
+                            <%= item.name %>&lt;<%= item.imid %>&gt;
+                        </em>
+                    </div>
+                    <% } %>
+                    <div class="item-adr-add">
+                        <input type="text"><span></span>
+                        <div class="slideDiv fn-hide">
+                        </div>
+                    </div>
+                </div>
+                <input name="tutor" type="text" class="item-real-input fn-hide" value="<%= JSON.stringify(result.tutor) %>"/>
+            </div>
+            <div class="item write-input-box">
+                <strong>课程助理：</strong>
+                <div class="item-input fn-clear">
+                    <% for(var j = 0; j < result.assistant.length; j++) { var item = result.assistant[j]; %>
+                    <div class="item-adr">
+                        <em name="<%= item.name %>"
+                            imid="<%= item.imid %>"
+                            branch="<%= item.branch %>"
+                            acct="<%= item.acct %>"
+                            department="<%= item.department %>">
+                            <%= item.name %>&lt;<%= item.imid %>&gt;
+                        </em>
+                    </div>
+                    <% } %>
+                    <div class="item-adr-add">
+                        <input type="text"><span></span>
+                        <div class="slideDiv fn-hide">
+                        </div>
+                    </div>
+                </div>
+                <input name="assistant" type="text" class="item-real-input fn-hide" value="<%= JSON.stringify(result.assistant) %>"/>
+            </div>
+            <input name="picture" type="text" class="fn-hide" value="<%= result.picture %>">
+        </form>
+
+        <div class="add_set">
+            <div class="imgbox">
+                <img src="<% if (result.picture ) {%><%= result.picture %><% } else { %>/img/course.jpg<% } %>"/>
+                <div class="imgbg"></div>
+                <form class="form-upload-pic">
+                    <a href="###" class="btn-upload-pic">上传图片</a>
+                    <input name="uploadFile" type="file" accept="image/jpeg, image/png" class="input-upload-pic" />
+                </form>
+            </div>
+            <a href="###" class="btn-confirm-intro ui-button ui-button-lreg">保存</a>
+            <a href="###" class="btn-cancel-intro ui-button ui-button-lgrey">取消</a>
+        </div>
+    </div>
+</div>
+
+<script type="text/html" id="template-info">
+    <div class="add_class">
+        <div class="item">
+            <strong>课程名称：</strong>
+            {{courseName}}
+        </div>
+        <div class="item">
+            <strong>标签：</strong>
+            <div class="ui-label fn-clear">&ensp;
+                {{each tag as t}}
+                    <div class="item">{{t}}</div>
+                {{/each}}
+            </div>
+        </div>
+        <div class="item">
+            <strong>课时：</strong>
+            {{classTimes}}课时
+        </div>
+        <div class="item_two">
+            <div class="item">
+                <strong>开课时间：</strong>
+                {{startTime}} 至 {{endTime}}
+            </div>
+            <div class="item">
+                <strong>班次：</strong>&ensp;
+                {{className}}
+            </div>
+        </div>
+        <div class="item">
+            <strong>讲师：</strong>&ensp;
+            {{each tutor as t}}
+                {{t.name}}&lt;{{t.imid}}&gt;
+            {{/each}}
+        </div>
+        <div class="item">
+            <strong>课程助理：</strong>&ensp;
+            {{each assistant as t}}
+                {{t.name}}&lt;{{t.imid}}&gt;
+            {{/each}}
+        </div>
+
+        <div class="add_set">
+            <div class="imgbox">
+                <img src="{{if picture}}{{picture}}{{else}}/img/course.jpg{{/if}}"/>
+            </div>
+            <a href="###" class="btn-edit-intro ui-button ui-button-lgrey">编辑</a>
+        </div>
+    </div>
+</script>
+
+<form class="editalltxt editing fn-hide">
+    <div class="item fn-hide">
+        <strong>课程ID：</strong>
+        <input name="classId" type="text" value="<%= result.classId %>" size="40" >
+    </div>
+    <h2>课程介绍</h2>
+    <div>
+        <textarea id="editor-intro" name="intro" style="width:100%; height: 340px;"></textarea>
+    </div>
+    <div class="editbtn"><a href="###" class="btn-cancel-intro ui-button ui-button-lgrey">取消</a> <a href="###" class="btn-confirm-intro ui-button ui-button-lreg">确定</a></div>
+</form>
+
+<script type="text/javascript">window.UEDITOR_HOME_URL = '/js/lib/ueditor/';</script>
+<script type="text/javascript" src="/js/lib/ueditor/ueditor.config.js"></script>
+<script type="text/javascript" src="/js/lib/ueditor/ueditor.all.js"></script>

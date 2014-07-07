@@ -1,0 +1,90 @@
+//url路由映射
+var db = require('../models');
+var geturl = require('./geturl');
+var posturl = require('./posturl');
+var allLogin = require('../config').allLogin;
+
+/*装饰器*/
+var checkLogin = require('../utils/decorator').checkLogin;
+var checkLoginJson = require('../utils/decorator').checkLoginJson;
+
+module.exports = function (app) {
+
+  /*
+  * get访问的页面
+  */
+
+  //登出
+  app.get('/logout', geturl.logout);
+  //登录
+  app.get('/login', geturl.login);
+  //查找员工
+  app.get('/searchusers', geturl.searchUsers);
+  //列出所有讲师
+  app.get('/listtutors', checkLogin, geturl.listTutors);
+  //列出所有助理
+  app.get('/listassistant', checkLogin, geturl.listAssistant);
+  //列出最近添加的用户
+  app.get('/listrecentusers', checkLogin, geturl.listRecentUsers);
+
+  //首页
+  app.get('/', checkLogin, geturl.indexpage);
+  // 课程列表页
+  app.get('/courses', checkLogin, geturl.courseList);
+  // 课程详细页
+  app.get('/course', checkLogin, geturl.course);
+  // 管理页 默认是课程管理
+  app.get('/manage', checkLogin, geturl.manage);
+  // 管理页 讲师管理
+  app.get('/managetutor', checkLogin, geturl.manageTutor);
+  // 管理页 权限管理
+  app.get('/manageuser', checkLogin, geturl.manageUser);
+
+
+
+  /*
+  * post访问的api
+  */
+
+  //播放视频开始
+  app.post('/videostart', checkLoginJson, posturl.videoStart);
+  //播放视频结束
+  app.post('/videoend', checkLoginJson, posturl.videoEnd);
+  //添加课程
+  app.post('/admin/addcourse', checkLoginJson, posturl.addCourse);
+  //删除课程
+  //app.post('/admin/delcourse', checkLoginJson, posturl.delCourse);
+  //添加班次
+  app.post('/admin/addclass', checkLoginJson, posturl.addClass);
+  //修改班次
+  app.post('/admin/modifyclass', checkLoginJson, posturl.modifyClass);
+  //删除班次
+  app.post('/admin/delclass', checkLoginJson, posturl.delClass);
+  //添加班次学员
+  app.post('/admin/addmember',  checkLoginJson,posturl.addMember);
+  //删除班次学员
+  app.post('/admin/deletemember', checkLoginJson, posturl.deleteMember);
+  //上传课程图片
+  app.post('/admin/uploadpic', checkLoginJson, posturl.uploadPic);
+  //上传课程视频
+  app.post('/admin/uploadvideo', checkLoginJson, posturl.uploadVideo);
+  //上传课程附件
+  app.post('/admin/uploadfile', checkLoginJson, posturl.uploadFile);
+  //添加章节
+  app.post('/admin/addchapter', checkLoginJson, posturl.addChapter);
+  //添加权限
+  app.post('/admin/addquanxian', checkLoginJson, posturl.addQuanxian);
+  //修改权限
+  app.post('/admin/modifyquanxian', checkLoginJson, posturl.modifyQuanxian);
+  //删除权限
+  app.post('/admin/deletequanxian', checkLoginJson, posturl.deleteQuanxian);
+  //删除章节
+  app.post('/admin/deletechapter', checkLoginJson, posturl.deleteChapter);
+  //修改章节
+  app.post('/admin/modifychapter', checkLoginJson, posturl.modifyChapter);
+  //添加讲师
+  app.post('/admin/addtutor',checkLoginJson, posturl.addTutor);
+  //讲师详情
+  app.post('/admin/tutordetail', checkLoginJson, posturl.tutorDetail);
+
+};

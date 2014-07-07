@@ -1,0 +1,25 @@
+<script id="template-dialog-video" type="text/html">
+    <div i="dialog" class="ui_layer ui_layer_big">
+        <div i="header" class="layerhead"><a i="close" href="#" class="layerclose">关闭</a><span i="title"></span></div>
+        <div i="body" class="layercont fn-clear">
+            <div i="video" class="layervidio">
+                {{if videoUrl}}
+                <object id="FlashID" name="FlashID" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="660" height="380" type="application/x-shockwave-flash">
+                    <param name="movie" value="/flash/flvplayer.swf" />
+                    <param name="FlashVars" value="auto=false&vdo={{videoUrl}}&pic={{picUrl}}&fnB=_onVideoEnd&fnParamB={{chapterId}}&fnA=_onVideoStart&fnParamA={{chapterId}}" />
+                    <param name="quality" value="high" />
+                    <param name="swfversion" value="8.0.35.0" />
+                    <param name="allowScriptAccess" value="always" />
+                    <param name="wmode" value="transparent" />
+                    <param name="allowFullScreen" value="true" />
+                    <embed src="/flash/flvplayer.swf" quality="high" wmode="transparent" width="660" height="380" id="FlashID" name="FlashID" align="middle" allowScriptAccess="always" allowFullScreen="true" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" FlashVars="auto=false&vdo={{videoUrl}}&pic={{picUrl}}&fnB=_onVideoEnd&fnParamB={{chapterId}}&fnA=_onVideoStart&fnParamA={{chapterId}}"/><!-- 980f0afeb277e902c448022dac9c3904.MTS -->
+                </object>
+                {{else}}
+                视频转码中，请稍后刷新...
+                {{/if}}
+            </div>
+            <div i="content" class="layeralltxt">
+            </div>
+        </div>
+    </div>
+</script>

@@ -1,0 +1,205 @@
+/**
+ * ui 操作
+ */
+define('ui', ['jquery', 'dialog', 'template', 'autowrite', 'userlist', 'api'], function(require, exports, module){
+    
+    var $ = require('jquery');
+    var dialog = require('dialog');
+    var template = require('template');
+    var autowrite = require('autowrite');
+	var userlist = require('userlist');
+    var api = require('api');
+    
+    // 初始化自动补全
+    var searchHandle;
+    var searchFunc = function(key){
+        var that = this;
+        clearTimeout(searchHandle);
+        searchHandle = setTimeout(function(){
+            api.searchUser({key: key}, function(data){
+                if(!data.users || data.users.length == 0){
+                    return;
+                }
+                var result = [];
+                var datas = [];
+                for(var i = 0; i < data.users.length; i++){
+                    var item = data.users[i];
+                    result.push(item.USER_NickName + '&lt;' + item.USER_IMCode + '&gt;');
+                    datas.push({
+                        name: item.USER_NickName,
+                        imid: item.USER_IMCode,
+                        branch: item.USER_Branch,
+                        acct: item.USER_Account
+                    });
+                }
+                that.showSlideDiv(result, datas);
+            });
+        }, 200);
+    };
+    var updateFunc = function(){
+        var $addrs = this.$parentBox.find('.item-adr em');
+        var resultList = [];
+        var that = this;
+        $addrs.each(function(k, v){
+            var $em = $(v);
+            var resultItem = $em.data('privateData');
+            if(!resultItem){
+                resultItem = {
+                    name: $em.attr('name'),
+                    imid: $em.attr('imid'),
+                    branch: $em.attr('branch'),
+                    acct: $em.attr('acct')
+                };
+            }
+            resultList.push(resultItem);
+        });
+        this.$realInput.val(JSON.stringify(resultList));
+    };
+    
+    /**
+     * 重置自动补全
+     */
+    exports.autoComplete = function(){
+        autowrite.AutoWrite.init();
+        $('.write-input-box .item-input').each(function(k, v){
+            var isTagInput = $(v).is('.item-input-tag');
+            new autowrite.AutoWrite(v, {
+                width: 500, 
+                searchFunc: isTagInput ? undefined : searchFunc,
+                updateFunc: isTagInput ? undefined : updateFunc,
+                disableNormalInput: isTagInput ? false : true
+            });
+        });
+    };
+	
+	// 初始化自动补全
+	var searchHandleUserList;
+	var searchFuncUserList = function (key) {
+		var that = this;
+		var searchApi = key ? api.searchUser : api.recentUser;
+		clearTimeout(searchHandleUserList);
+		searchHandleUserList = setTimeout(function () {
+			searchApi({
+				key: key
+			}, function (data) {
+				if (!data.users || data.users.length == 0) {
+					return;
+				}
+				var result = [];
+				var datas = [];
+				for (var i = 0; i < data.users.length; i++) {
+					var item = data.users[i];
+					result.push(item.USER_NickName + '&lt;' + item.USER_IMCode + '&gt;');
+					datas.push({
+						name: item.USER_NickName,
+						imid: item.USER_IMCode,
+						branch: item.USER_Branch,
+						acct: item.USER_Account
+					});
+				}
+				that.listUser(result, datas);
+			});
+		}, 200);
+	};
+	var updateFuncUserList = function () {
+		var $lis = this.$rightList.find('li');
+		var resultList = [];
+		var that = this;
+		$lis.each(function (k, v) {
+			var $li = $(v);
+			var resultItem = $li.data('privateData');
+			if (!resultItem) {
+				resultItem = {
+					name: $li.attr('name'),
+					imid: $li.attr('imid'),
+					branch: $li.attr('branch'),
+					acct: $li.attr('acct')
+				};
+			}
+			resultList.push(resultItem);
+		});
+		this.$realInput.val(JSON.stringify(resultList));
+	};
+	
+	/**
+     * 重置用户列表
+     */
+    exports.userList = function(){
+		new userlist.UserList($('.addbox'), {
+			searchFunc: searchFuncUserList,
+			updateFunc: updateFuncUserList
+		});
+    };
+    
+    // 标签页点击
+	$('.ui-tab a').click(function(e){
+		var $this = $(this);
+		var target = $($this.attr('target'));
+        if(target[0]){
+            $this.siblings().removeClass('current');
+            $this.addClass('current');
+            target.siblings('.tab-content').hide();
+            target.show();
+            e.preventDefault();
+        }
+	});
+    
+    /**
+     * 提示框
+     */
+    exports.tips = function(text){
+        var tipsDialog = dialog({
+            content: text,
+            width: ''
+        });
+        tipsDialog.show();
+        setTimeout(function () {
+            tipsDialog.close().remove();
+        }, 2000);
+    };
+    
+    var dialogConfirm = 
+        '<div  i="dialog" class="ui_layer ui_layer_sml">' +
+            '<div i="body" class="layercont">' +
+                '<div i="content" class="madetxt">' +
+                '</div>' +
+            '</div>' +
+            '<div i="footer" class="layerfoot">' +
+                '<a i="close" href="#" class="ui-button ui-button-lgrey">取消</a> ' +
+                '<a i="ok" href="#" data-id="ok" class="ui-button ui-button-lreg">确定</a>' +
+            '</div>' +
+        '</div>';
+    
+    /**
+     * 确认框
+     */
+    exports.confirm = function(opt){
+        var opt = $.extend({}, {
+            innerHTML: dialogConfirm,
+            width: ''
+        }, opt);
+        var confirmDialog = dialog(opt);
+        confirmDialog.showModal();
+        return confirmDialog;
+    }
+	
+	/**
+	 * 讲师详情初始化
+	 */
+	exports.tutorInfo = function () {
+		$(document).on('click', '.btn-tutor-info', function (e) {
+			var tutorId = $(this).attr('tutor-id');
+			var dialogTutorInfo = dialog({
+				title: '讲师详情',
+				content: '正在获取讲师信息...'
+			});
+			api.tutorInfo({
+				tutorId: tutorId
+			}, function (data) {
+				var formHtml = template('template-tutor-info', data.result);
+				dialogTutorInfo.content(formHtml);
+			});
+			dialogTutorInfo.showModal();
+		});
+	}
+});

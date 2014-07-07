@@ -1,0 +1,15 @@
+//章节数据表
+module.exports = function(sequelize, DataTypes) {
+  var ChapterData = sequelize.define('ChapterData', {
+    classId : {type: DataTypes.INTEGER, defaultValue: 0},
+    chapterId: {type: DataTypes.INTEGER, defaultValue: 0},
+    startTime: {type: DataTypes.STRING, defaultValue: ''},
+    endTime: {type: DataTypes.STRING, defaultValue: ''},
+    createdTime: {type: DataTypes.STRING, allowNull: true},
+    updatedTime: {type: DataTypes.STRING, allowNull: true}
+  },{
+    timestamps: false
+  });
+  return ChapterData;
+}
+

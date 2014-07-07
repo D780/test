@@ -1,0 +1,63 @@
+<% include inc/head %>
+    <div class="wrap fn-clear">
+        <div class="ui-search ui-search-l fn-right">
+            <a href="###" class="btn-search">搜索</a>
+            <input id="input-search" type="text" placeholder="搜索"/>
+        </div>
+    </div>
+    <div class="content wrap">
+        <!--课程列表 开始-->
+        <% if (result.classes.length) { %>
+            <div class="course-list fn-clear">
+                <% for(var i = 0; i < result.classes.length; i++) {
+                    var item = result.classes[i] %>
+                    <div class="item">
+                        <div class="pic"><a href="/course?id=<%= item.classId %>"><img src="<% if (item.picture ) {%><%= item.picture %><% } else { %>/img/course.jpg<% } %>" alt="" width="282" height="188"/></a></div>
+                        <div class="info">
+                            <h2><a href="/course?id=<%= item.classId %>"><%= item.courseName %></a></h2>
+                            <div class="bd">
+                                <p>讲师：<% if(item.tutor){ for(var j = 0; j < item.tutor.length; j++) { %><%= item.tutor[j] %> <% } } %><em>|</em>课程助理：<% if(item.assistant) { for(var j = 0; j < item.assistant.length; j++) { %><%= item.assistant[j] %> <% } } %></p>
+                                <p><%= item.classTimes %>课时<em>|</em>开课时间：<%= item.startTime %> 至 <%= item.endTime %></p>
+                                <div class="ui-label">
+                                    <div class="bd">
+                                        <% if(item.tag && item.tag.length) { %>
+                                            <% for(var j = 0; j < item.tag.length; j++){ %>
+                                                <div class="item"><%= item.tag[j] %></div>
+                                            <% } %>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        <% } else { %>
+            <p> 暂无结果 </p>
+        <% } %>
+        <!--课程列表 结束-->
+
+        <% if(result.totalPage > 1) { %>
+            <div class="ui_page fn-right">
+                <a <% if(result.currentPage > 1) { %>href="/courses?page=<%= result.currentPage - 1 %><% if (result.search) { %>&search=<%= result.search %><% } %>" page="<%= result.currentPage - 1 %>"<% } else { %>href="###"<% } %>>上一页</a>
+                <% if(result.currentPage - 2 > 1) { %>
+                    <a href="/courses?page=1<% if (result.search) { %>&search=<%= result.search %><% } %>" page="1">1</a>
+                    <% if(result.currentPage - 3 != 1) { %>
+                        <span>...</span>
+                    <% } %>
+                <% } %>
+                <% for(var i = Math.max(result.currentPage - 2, 1); i <= Math.min(result.totalPage, result.currentPage + 2); i++) { %>
+                    <a <% if(i == result.currentPage) { %>href="###" class="current"<% } else { %> href="/courses?page=<%= i %><% if (result.search) { %>&search=<%= result.search %><% } %>"<% } %> page="<%= i %>"><%= i %></a>
+                <% } %>
+                <% if(result.currentPage + 2 < result.totalPage) { %>
+                    <% if(result.currentPage + 3 != result.totalPage) { %>
+                        <span>...</span>
+                    <% } %>
+                    <a href="/courses?page=<%= result.totalPage %><% if (result.search) { %>&search=<%= result.search %><% } %>" page="<%= result.totalPage %>"><%= result.totalPage %></a>
+                <% } %>
+                <a <% if(result.currentPage < result.totalPage) { %>href="/courses?page=<%= result.currentPage + 1 %><% if (result.search) { %>&search=<%= result.search %><% } %>" page="<%= result.currentPage + 1 %>"<% } else { %>href="###"<% } %>>下一页</a>
+            </div>
+        <% } %>
+    </div>
+    <script type="text/javascript" src="/js/pages/courses.js"></script>
+<% include inc/foot %>

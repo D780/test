@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head lang="zh-cn">
+    <meta charset="UTF-8">
+    <title>多益培训</title>
+    <link href="/css/comm.css" rel="stylesheet">
+<body>
+    <div class="header">
+        <div class="wrap">
+            <div class="nav">
+                <div class="nav-wrap">
+                    <div class="nav-list">
+                        <a href="javascript:;">首页</a>
+                        <a href="javascript:;">课程</a>
+                        <a href="javascript:;">管理</a>
+                    </div>
+                </div>
+            </div>
+            <div class="logo">
+                <img src="/img/logo.png" alt="多益培训"/>
+            </div>
+            <div class="menu">
+                <div class="menu-bd">
+                    <span>当前登录：罗维</span>
+                    <a href="javascript:;">退出</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="wrap fn-clear">
+        <div class="ui-search ui-search-l fn-right">
+            <a href="javascript:;">搜索</a>
+            <input type="text" placeholder="搜索"/>
+        </div>
+    </div>
+
+
+    <div class="content wrap">
+        <!--课程列表 开始-->
+        <div class="course-list fn-clear">
+            <div class="item">
+                <div class="pic"><a href="javascript:;"><img src="/img/course.jpg" alt="" width="282" height="188"/></a></div>
+                <div class="info">
+                    <h2><a href="javascript:;">设计规范</a></h2>
+                    <div class="bd">
+                        <p>讲师：沈永乐<em>|</em>课程助理：陈建捷</p>
+                        <p>20课时<em>|</em>开课时间：14-5-5 至 14-7-5</p>
+                        <div class="ui-label">
+                            <div class="bd">
+                                <div class="item">程序</div>
+                                <div class="item">游戏技术</div>
+                                <div class="item">服务端</div>
+                                <div class="item">程序</div>
+                                <div class="item">游戏技术</div>
+                                <div class="item">服务端</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="item">
+                <div class="pic"><a href="javascript:;"><img src="/img/course.jpg" alt="" width="282" height="188"/></a></div>
+                <div class="info">
+                    <h2><a href="javascript:;">设计规范</a></h2>
+                    <div class="bd">
+                        <p>讲师：沈永乐<em>|</em>课程助理：陈建捷</p>
+                        <p>20课时<em>|</em>开课时间：14-5-5 至 14-7-5</p>
+                        <div class="ui-label">
+                            <div class="bd">
+                                <div class="item">程序</div>
+                                <div class="item">游戏技术</div>
+                                <div class="item">服务端</div>
+                                <div class="item">程序</div>
+                                <div class="item">游戏技术</div>
+                                <div class="item">服务端</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="item">
+                <div class="pic"><a href="javascript:;"><img src="/img/course.jpg" alt="" width="282" height="188"/></a></div>
+                <div class="info">
+                    <h2><a href="javascript:;">设计规范</a></h2>
+                    <div class="bd">
+                        <p>讲师：沈永乐<em>|</em>课程助理：陈建捷</p>
+                        <p>20课时<em>|</em>开课时间：14-5-5 至 14-7-5</p>
+                        <div class="ui-label">
+                            <div class="bd">
+                                <div class="item">程序</div>
+                                <div class="item">游戏技术</div>
+                                <div class="item">服务端</div>
+                                <div class="item">程序</div>
+                                <div class="item">游戏技术</div>
+                                <div class="item">服务端</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="item">
+                <div class="pic"><a href="javascript:;"><img src="/img/course.jpg" alt="" width="282" height="188"/></a></div>
+                <div class="info">
+                    <h2><a href="javascript:;">设计规范</a></h2>
+                    <div class="bd">
+                        <p>讲师：沈永乐<em>|</em>课程助理：陈建捷</p>
+                        <p>20课时<em>|</em>开课时间：14-5-5 至 14-7-5</p>
+                        <div class="ui-label">
+                            <div class="bd">
+                                <div class="item">程序</div>
+                                <div class="item">游戏技术</div>
+                                <div class="item">服务端</div>
+                                <div class="item">程序</div>
+                                <div class="item">游戏技术</div>
+                                <div class="item">服务端</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--课程列表 结束-->
+        <div class="ui_page fn-right">
+            <a href="#">上一页</a>
+            <a href="#" class="current">1</a>
+            <a href="#">2</a>
+            <span>...</span>
+            <a href="#">10</a>
+            <a href="#">下一页</a>
+        </div>
+    </div>
+
+</body>
+</html>

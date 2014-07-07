@@ -1,0 +1,138 @@
+define('userlist', ['jquery'], function (require, exports, module) {
+
+	var $ = require('jquery');
+
+	/**
+	 * 用户选择窗口
+	 * @constructor
+	 * @param {HtmlDomObject} dom
+	 * @param {Object} setting
+	 */
+	function UserList(dom, setting) {
+		var that = this;
+		this.settings = $.extend({}, UserList.defaultSetting, setting);
+		this.$dom = $(dom);
+		this.$input = this.$dom.find('.input-search');
+		this.$leftList = this.$dom.find('.left-bd ul');
+		this.$rightList = this.$dom.find('.right ul');
+		this.$realInput = this.$dom.find('.input-real'); // 真实的input
+
+		// 点击列表项
+		this.$dom.on('click', 'li', function (e) {
+			$(this).toggleClass('selected');
+		});
+
+		// 点击添加按钮
+		this.$dom.on('click', '.btn-add', function (e) {
+			that.addSelected();
+		});
+
+		// 点击删除按钮
+		this.$dom.on('click', '.btn-remove', function (e) {
+			that.removeSelected();
+		});
+
+		// 输入搜索
+		this.$input.on('keyup', function (e) {
+			var val = $(this).val();
+			if (that.settings.searchFunc) {
+				that.settings.searchFunc.call(that, val);
+			}
+		});
+
+		if (that.settings.searchFunc) {
+			that.settings.searchFunc.call(that, '');
+		}
+		
+		return that;
+	}
+
+	/**
+	 * 添加选中项
+	 */
+	UserList.prototype.addSelected = function () {
+		var addList = [];
+		var addData = [];
+		var rightList = [];
+		this.$rightList.find('li').each(function (k, v) {
+			var text = $(v).text();
+			rightList.push(text);
+		});
+		this.$leftList.find('li.selected').each(function (k, v) {
+			var $v = $(v);
+			var text = $v.text();
+			var data = $v.data('privateData');
+			$v.removeClass('selected');
+			if (rightList.indexOf(text) == -1) {
+				addList.push(text);
+				addData.push(data);
+			}
+		});
+		for (var i = 0; i < addList.length; i++) {
+			var text = addList[i];
+			var data = addData[i];
+			var newLi = $('<li>' + text + '</li>');
+			newLi.data('privateData', data);
+			this.$rightList.append(newLi);
+		}
+		this.updateRealInput();
+	};
+
+	/**
+	 * 移除选中
+	 */
+	UserList.prototype.removeSelected = function () {
+		this.$rightList.find('li.selected').remove();
+		this.updateRealInput();
+	};
+
+	/**
+	 * 列出用户列表
+	 */
+	UserList.prototype.listUser = function (list, dataList) {
+		if (!list || list.length == 0 || (dataList && list.length != dataList.length)) {
+			return;
+		}
+		this.$leftList.empty();
+		for (var i = 0; i < list.length && i < 10; i++) {
+			var li = $('<li>' + list[i] + '</li>');
+			if (dataList) {
+				li.data('privateData', dataList[i]);
+			}
+			this.$leftList.append(li);
+		}
+	};
+
+	/**
+	 * 更新实际的输入框
+	 */
+	UserList.prototype.updateRealInput = function () {
+		if (this.settings.updateFunc) {
+			this.settings.updateFunc.call(this);
+			return;
+		}
+		var $users = this.$rightList.find('li');
+		var resultList = [];
+		var that = this;
+		$users.each(function (k, v) {
+			var text = $(v).text();
+			if (that.settings.parseFunc) {
+				text = that.settings.parseFunc.call(this, v);
+			}
+			resultList.push(text);
+		});
+		this.$realInput.val(resultList.join(' '));
+	};
+
+	/**
+	 * 默认
+	 */
+	UserList.defaultSetting = {
+		searchFunc: function () {
+			return [];
+		},
+		width: null
+	};
+
+	exports.UserList = UserList;
+});

@@ -1,0 +1,87 @@
+/*
+ * 定时任务 清理无用文件
+ */
+
+var fs = require('fs');
+var path = require('path');
+var db = require('../models');
+
+var delVideo = function () {
+  var preDir = path.join(__dirname, '../upload'); // upload目录
+  var finalDir = path.join(preDir, 'video');
+  var files = fs.readdirSync(finalDir);
+  files.forEach(function(filename){
+    var fullname = path.join(finalDir, filename);
+    var stats = fs.statSync(fullname); //获取文件属性
+    var url = '/video/' + filename;
+    if(stats.isFile()){
+      if(filename.indexOf('.flv') !== -1){ //是转码后文件
+        db.File.find({where: {flvurl: url, isVideo: 1}}).success(function(file){
+          if(!file){ //找不到 可删
+            fs.unlinkSync(fullname);
+          }
+        });
+      }else{ //是上传的原文件
+        db.File.find({where: {url: url, isVideo: 1}}).success(function(file){
+          if(!file){ //找不到 可删
+            fs.unlinkSync(fullname);
+          }else{
+            if(file.flvurl){ //找到但已转码完成 可删
+              fs.unlinkSync(fullname);
+            }
+          }
+        });
+      }
+    }
+  });
+};
+
+
+var delFile = function () {
+  var preDir = path.join(__dirname, '../upload'); // upload目录
+  var finalDir = path.join(preDir, 'file');
+  var files = fs.readdirSync(finalDir);
+  files.forEach(function(filename){
+    var fullname = path.join(finalDir, filename);
+    var stats = fs.statSync(fullname); //获取文件属性
+    if(stats.isFile()){
+      var fullname = path.join(finalDir, filename);
+      var url = '/file/' + filename;
+      db.File.find({where: {url: url, isVideo: 0}}).success(function(file){
+        if(!file){
+          fs.unlinkSync(fullname);
+        }
+      })
+    }
+  });
+};
+
+
+var delImg = function () {
+  var preDir = path.join(__dirname, '../upload'); // upload目录
+  var finalDir = path.join(preDir, 'img');
+  var files = fs.readdirSync(finalDir);
+  files.forEach(function(filename){
+    var fullname = path.join(finalDir, filename);
+    var stats = fs.statSync(fullname); //获取文件属性
+    if(stats.isFile()){
+      var picture = '/img/' + filename;
+      db.Course.find({where: {picture: picture}}).success(function(course){
+        if(!course){
+          fs.unlinkSync(fullname);
+        }
+      })
+    }
+  });
+};
+
+
+var cron = function () {
+  delVideo();
+  delFile();
+  delImg();
+};
+
+
+exports.cron = cron;
+

@@ -1,0 +1,56 @@
+<div class="editbox static">
+    <div class="add_class">
+        <div class="item">
+            <strong>课程名称：</strong>
+            <%= result.courseName %>
+        </div>
+        <div class="item">
+            <strong>标签：</strong>
+            <div class="ui-label fn-clear">&ensp;
+                <% for(var j = 0; j < result.tag.length; j++){ %>
+                    <div class="item"><%= result.tag[j] %></div>
+                <% } %>
+            </div>
+        </div>
+        <div class="item">
+            <strong>课时：</strong>
+            <%= result.classTimes %>课时
+        </div>
+        <div class="item_two">
+            <div class="item">
+                <strong>开课时间：</strong>
+                <%= result.startTime %> 至 <%= result.endTime %>
+            </div>
+            <div class="item">
+                <strong>班次：</strong>&ensp;
+                <%= result.className %>
+            </div>
+        </div>
+        <div class="item">
+            <strong>讲师：</strong>&ensp;
+            <% for(var j = 0; j < result.tutor.length; j++) { var tutor = result.tutor[j]; %><%= tutor.name %>&lt;<%= tutor.imid %>&gt; <% } %>
+        </div>
+        <div class="item">
+            <strong>课程助理：</strong>&ensp;
+            <% for(var j = 0; j < result.assistant.length; j++) { var assist = result.assistant[j]; %><%= assist.name %>&lt;<%= assist.imid %>&gt; <% } %>
+        </div>
+
+        <div class="add_set">
+            <div class="imgbox">
+                <img src="<% if (result.picture ) {%><%= result.picture %><% } else { %>/img/course.jpg<% } %>"/>
+            </div>
+            <% if(result.access ) { %>
+                <a href="###" class="btn-edit-intro ui-button ui-button-lgrey">编辑</a>
+            <% } %>
+        </div>
+    </div>
+</div>
+<div class="editalltxt static">
+    <h2>课程介绍</h2>
+    <div class="editorbox">
+        <%- result.intro %>
+    </div>
+    <% if(result.access ) { %>
+        <div class="editbtn"><a href="###" class="btn-edit-intro ui-button ui-button-lgrey">编 辑</a></div>
+    <% } %>
+</div>

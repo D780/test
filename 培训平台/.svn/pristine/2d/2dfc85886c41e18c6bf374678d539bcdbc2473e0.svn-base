@@ -1,0 +1,239 @@
+/**
+ * 管理页
+ */
+seajs.use(['jquery', 'dialog', 'template', 'tool', 'api', 'ui', 'datepicker', 'jquery-form'], function ($, dialog, template, tool, api, ui) {
+
+	/**
+	 * 搜索关键字
+	 * @param keyword
+	 */
+	function search(keyword) {
+		window.location = '/manage?search=' + encodeURIComponent(keyword);
+	}
+
+	// 搜索按钮
+	$('.btn-search').click(function (e) {
+		var keyword = $('#input-search').val();
+		if (keyword.length < 0) {
+			return;
+		}
+		search(keyword);
+	});
+
+	// 回车搜索
+	$('#input-search').keyup(function (e) {
+		if (e.keyCode == 13) {
+			var keyword = $('#input-search').val();
+			if (keyword.length < 0) {
+				return;
+			}
+			search(keyword);
+		}
+	});
+
+	// 上传课程图片
+	$(document).on('change', '.input-upload-pic', function (e) {
+		var ajaxOpt = {
+			url: '/admin/uploadpic',
+			type: 'POST',
+			success: function (data) {
+				if (data.code === 1) {
+					ui.tips('上传成功');
+					// 修改显示图片
+					$('.imgbox img').attr('src', data.data.url);
+					$('input[name=picture]').val(data.data.url);
+				} else {
+					ui.tips(data.msg);
+				}
+			}
+		};
+		$('.form-upload-pic').ajaxSubmit(ajaxOpt);
+	});
+
+	// 添加课程按钮
+	var dialogNewCourse = null;
+	$('.btn-new-course').click(function (e) {
+		var formHtml = template('template-new-course', {});
+		var dialogLayout = template('template-dialog-big');
+		dialogNewCourse = dialog({
+			content: formHtml,
+			title: '添加新课程',
+			innerHTML: dialogLayout,
+			width: ''
+		});
+		// 初始化日期选择器
+		$('.input-date').pickadate();
+		ui.autoComplete();
+		dialogNewCourse.showModal();
+	});
+
+	// 确认添加课程
+	$(document).on('click', '.btn-confirm-course', function (e) {
+		var param = tool.formToJson($('.form-new-course'));
+
+		var courseName = param.courseName ? param.courseName.trim() : undefined;
+		var className = param.className ? param.className.trim() : undefined;
+		var classTimes = param.classTimes ? parseInt(param.classTimes) : undefined;
+		var startTime = param.startTime;
+		var endTime = param.endTime;
+		var tags = param.tag;
+		var tutor = param.tutor ? JSON.parse(param.tutor) : [];
+		var assistant = param.assistant ? JSON.parse(param.assistant) : [];
+
+		// 参数验证
+		if (!courseName) {
+			ui.tips('课程名不能为空');
+			return;
+		} else if (courseName.length > 20) {
+			ui.tips('课程名长度不能超过20字符');
+			return;
+		} else if (!className) {
+			ui.tips('班次名不能为空');
+			return;
+		} else if (className.length > 20) {
+			ui.tips('班次名长度不能超过20字符');
+			return;
+		} else if (!classTimes) {
+			ui.tips('课时不能为空');
+			return;
+		} else if (classTimes.toString == 'NaN') {
+			ui.tips('课时需为数字');
+			return;
+		} else if (classTimes < 0) {
+			ui.tips('课时需为非负数');
+			return;
+		} else if (classTimes > 999) {
+			ui.tips('课时数不能超过999');
+			return;
+		} else if (!startTime || !endTime) {
+			ui.tips('开课时间不能为空');
+			return;
+		} else if (startTime > endTime) {
+			ui.tips('开课时间不能晚于结课时间');
+			return;
+		} else if (!tutor) {
+			ui.tips('讲师不能为空');
+			return;
+		} else if (tutor.length < 1) {
+			ui.tips('讲师人数至少1人');
+			return;
+		} 
+
+		api.addCourse(param, function (data) {
+			if (data.code == 1) {
+				ui.tips('<p>创建成功</p><p>正在刷新...</p>');
+				setTimeout(function () {
+					window.location.reload();
+				}, 1000);
+			} else {
+				ui.tips(data.msg);
+			}
+		});
+	});
+
+	// 新开班次按钮
+	var dialogAddClass = null;
+	$(document).on('click', '.btn-add-class', function (e) {
+		var $tr = $(this).parents('tr');
+		var formHtml = template('template-add-class', JSON.parse($tr.attr('class-data')));
+		var dialogLayout = template('template-dialog-big');
+		dialogAddClass = dialog({
+			content: formHtml,
+			title: '添加班次',
+			innerHTML: dialogLayout,
+			width: ''
+		});
+		// 初始化日期选择器
+		$('.input-date').pickadate();
+		ui.autoComplete();
+		dialogAddClass.showModal();
+	});
+
+	// 确认添加班次
+	$(document).on('click', '.btn-confirm-class', function (e) {
+		var param = tool.formToJson($('.form-add-class'));
+
+		var courseName = param.courseName ? param.courseName.trim() : undefined;
+		var className = param.className ? param.className.trim() : undefined;
+		var classTimes = param.classTimes ? parseInt(param.classTimes) : undefined;
+		var startTime = param.startTime;
+		var endTime = param.endTime;
+		var tags = param.tag;
+		var tutor = param.tutor ? JSON.parse(param.tutor) : [];
+		var assistant = param.assistant ? JSON.parse(param.assistant) : [];
+
+		// 参数验证
+		if (!className) {
+			ui.tips('班次名不能为空');
+			return;
+		} else if (className.length > 20) {
+			ui.tips('班次名长度不能超过20字符');
+			return;
+		} else if (classTimes < 0) {
+			ui.tips('课时需为非负数');
+			return;
+		} else if (!startTime || !endTime) {
+			ui.tips('开课时间不能为空');
+			return;
+		} else if (startTime > endTime) {
+			ui.tips('开课时间不能晚于结课时间');
+			return;
+		} else if (!tutor) {
+			ui.tips('讲师不能为空');
+			return;
+		} else if (tutor.length < 1 || tutor.length > 3) {
+			ui.tips('讲师人数必须在1-3之间');
+			return;
+		} else if (assistant && assistant.length > 2) {
+			ui.tips('助理人数必须在0-2之间');
+			return;
+		}
+
+		api.addClass(param, function (data) {
+			if (data.code == 1) {
+				ui.tips('<p>创建成功</p><p>正在刷新...</p>');
+				setTimeout(function () {
+					window.location.reload();
+				}, 1000);
+			} else {
+				ui.tips(data.msg);
+			}
+		});
+	});
+
+	// 删除班次
+	$(document).on('click', '.btn-delete-class', function (e) {
+		var $tr = $(this).parents('tr');
+		var classData = JSON.parse($tr.attr('class-data'));
+		var className = classData.className;
+		var classId = classData.classId;
+		var dialogLayout = template('template-dialog-confirm');
+		dialogAddClass = ui.confirm({
+			content: '确定删除班次 ' + className + ' ?',
+			ok: function () {
+				api.delClass({
+					classId: classId
+				}, function (data) {
+					if (dialogAddClass) {
+						dialogAddClass.close().remove();
+					}
+					if (data.code == 1) {
+						ui.tips('<p>删除成功</p><p>正在刷新...</p>');
+						setTimeout(function () {
+							window.location.reload();
+						}, 1000);
+					} else {
+						ui.tips(data.msg);
+					}
+				});
+				return false;
+			}
+		});
+		// 初始化日期选择器
+		$('.input-date').pickadate();
+		ui.autoComplete();
+		dialogAddClass.showModal();
+	});
+	
+	ui.tutorInfo();
+});

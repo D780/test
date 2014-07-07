@@ -1,0 +1,92 @@
+/**
+ * 管理用户权限页
+ */
+seajs.use(['jquery', 'dialog', 'template', 'tool', 'api', 'ui', 'datepicker', 'jquery-form'], function ($, dialog, template, tool, api, ui) {
+
+	// 删除权限
+	$(document).on('click', '.btn-delete-authority', function (e) {
+		var $tr = $(this).parents('tr');
+		var userData = JSON.parse($tr.attr('user-data'));
+		var dialogConfirmDelete = ui.confirm({
+			content: '确定删除用户 ' + userData.name + ' 的所有权限?',
+			ok: function () {
+				api.delAuthority({
+					userId: userData.userId
+				}, function (data) {
+					if (data.code == 1) {
+						if (dialogConfirmDelete) {
+							dialogConfirmDelete.close().remove();
+						}
+						ui.tips('<p>删除成功</p>');
+						$tr.remove();
+					} else {
+						ui.tips(data.msg);
+					}
+				});
+				return false;
+			}
+		});
+		dialogConfirmDelete.showModal();
+	});
+	
+	// 修改权限
+	$(document).on('click', '.btn-modify-authority', function (e) {
+		var $tr = $(this).parents('tr');
+		var userData = JSON.parse($tr.attr('user-data'));
+		var userId = userData.userId;
+		var formHtml = template('template-dialog-authority', userData);
+		var dialogModifyAuthority = dialog({
+			title: '编辑特殊用户权限',
+			content: formHtml,
+			ok: function () {
+				var formData = tool.formToJson($('#form-modify-authority'));
+				api.modifyAuthority(formData, function (data) {
+					if (data.code == 1) {
+						if (dialogModifyAuthority) {
+							dialogModifyAuthority.close().remove();
+						}
+						formData.name = userData.name;
+						formData.userData = JSON.stringify(formData);
+						formData.even = $tr.hasClass('even');
+						var newTr = $(template('template-tr-user', formData));
+						ui.tips('<p>修改成功</p>');
+						$tr.hide().after(newTr);
+						$tr.remove();
+					} else {
+						ui.tips(data.msg);
+					}
+				});
+				return false;
+			}
+		});
+		dialogModifyAuthority.showModal();
+	});
+	
+	// 添加权限
+	$(document).on('click', '.btn-add-authority', function (e) {
+		var formHtml = template('template-dialog-authority', {});
+		var dialogAddAuthority = dialog({
+			title: '添加特殊用户权限',
+			content: formHtml,
+			ok: function () {
+				var formData = tool.formToJson($('#form-modify-authority'));
+				api.addAuthority(formData, function (data) {
+					if (data.code == 1) {
+						if (dialogAddAuthority) {
+							dialogAddAuthority.close().remove();
+						}
+						ui.tips('<p>添加成功</p><p>正在刷新...</p>');
+						setTimeout(function(){
+                            window.location.reload();
+                        }, 1000);
+					} else {
+						ui.tips(data.msg);
+					}
+				});
+				return false;
+			}
+		});
+		ui.autoComplete();
+		dialogAddAuthority.showModal();
+	});
+});

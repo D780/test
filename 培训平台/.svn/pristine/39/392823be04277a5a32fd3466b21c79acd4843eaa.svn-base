@@ -1,0 +1,345 @@
+define('autowrite', ['jquery'], function(require, exports, module){
+    
+    var $ = require('jquery');
+    $('head').append('<link rel="stylesheet" href="/css/autowrite.css" type="text/css" />');
+    
+    /**
+     * 自动补全插件
+     * @constructor
+     * @param {HtmlDomObject} dom
+     * @param {Object} setting
+     */
+    function AutoWrite(dom, setting){
+        this.settings = $.extend({}, AutoWrite.defaultSetting, setting);
+        this.$parentBox = $(dom);
+        this.$input = this.$parentBox.find('input');
+        this.$itemAdr = this.$parentBox.find('.item-adr-add');
+        this.$slideDiv = this.$parentBox.find('.slideDiv');
+        this.$realInput = this.$parentBox.parent().find('.item-real-input');
+        this.selectClass = 'active';
+        var that = this;
+        AutoWrite.all.push(that);
+        
+        if(this.settings.width){
+            this.$parentBox.width(this.settings.width);
+        }
+        if(this.settings.height){
+            this.$parentBox.height(this.settings.height);
+        }
+        
+        // 点击地址
+        this.$parentBox.on('click', '.item-adr', function (e) {
+            var self = $(this);
+            var obj = e.target;
+            if ("EM" == obj.tagName) {
+                // 选中地址
+                var empar = self.find('em').closest('.item-adr');
+                if(e.ctrlKey){
+                    if(self.hasClass(that.selectClass)){
+                        self.removeClass(that.selectClass);
+                    } else {
+                        self.addClass(that.selectClass);
+                    }
+                } else {
+                    that.$parentBox.find('.' + that.selectClass).removeClass(that.selectClass);
+                    self.addClass(that.selectClass);
+                }
+            } else {
+                // 插入并聚焦输入框
+                that.$itemAdr.insertBefore(self);
+                that.inputfoucs();
+            }
+            e.stopPropagation();
+        });
+        
+        // 双击地址
+        this.$parentBox.on('dblclick', '.item-adr em', function (e) {
+            var self = $(this);
+            var $parent = self.parent();
+            var addr = self.text();
+            that.$itemAdr.insertBefore($parent);
+            $parent.remove();
+            that.$input.val(addr);
+            that.inputRelength();
+            that.inputfoucs();
+            e.stopPropagation();
+        });
+        
+        // 点击内部输入框
+        this.$parentBox.on('click', '.item-adr-add input', function () {
+            that.$parentBox.find("." + that.selectClass).removeClass(that.selectClass);
+        });
+        
+        // 点击整个输入框
+        this.$parentBox.on('click', function (e) {
+            that.$parentBox.append(that.$itemAdr);
+            that.inputfoucs();
+            AutoWrite.current = that;
+        });
+        
+        // 提示名
+        this.$parentBox.on('click', '.slideDiv p', function(e){
+            var value = $(this).html();
+            var data = $(this).data('privateData');
+            that.createNewValue(value, data);
+            that.$parentBox.append(that.$itemAdr);
+            that.inputfoucs(); 
+        });
+        
+
+        // 输入
+        this.$input.on('keydown', function (e) {
+            var obj = e.target,
+                $obj = $(obj),
+                code = e.keyCode,
+                val = $obj.val();
+            if(val.length == 0){
+                switch (code) {
+                case 8: // 退格
+                    that.deldom(8);
+                    $obj.width(val.length * 6 + 12);
+                    break;
+                case 46: // 删除
+                    that.deldom(46);
+                    $obj.width(val.length * 6 + 12);
+                    break;
+                }
+            } else {
+                switch(code){
+                case 38: // 上箭头
+                    that.scrollSlideSelection(true)
+                    break;
+                case 40: // 下箭头
+                    that.scrollSlideSelection();
+                    break;
+                }
+            }
+        });
+        
+        this.$input.on('keyup', function (e) {
+            var obj = e.target,
+                $obj = $(obj),
+                code = e.keyCode,
+                val = $obj.val();
+            if(val.length > 0){
+                switch (code) {
+                case 38: 
+                case 40: 
+                    break;
+                case 8:
+                case 46:
+                    $obj.width(val.length * 6 + 12);
+                    if(that.settings.searchFunc){
+                        that.settings.searchFunc.call(that, val);
+                    }
+                    break;
+                case 13: // 回车
+                    var current = that.$slideDiv.find('.current');
+                    if(current[0]){
+                        var value = current.html();
+                        var data = current.data('privateData');
+                        that.createNewValue(value, data);
+                    } else {
+                        if(!that.settings.disableNormalInput){
+                            that.createNewValue($obj.val());
+                        }
+                    }
+                    break;
+                default: // 一般按键
+                    that.inputRelength();
+                    if(that.settings.searchFunc){
+                        that.settings.searchFunc.call(that, val);
+                    }
+                    break;
+                }
+            } else {
+                that.hideSlideDiv();
+            }
+        });
+        
+        // 出现
+        $(document).bind('click', function (e) {
+            var obj = e.target;
+            var val = that.$input.val();
+            if(!$(obj).closest(".item-input")[0]){
+                that.$parentBox.append(that.$itemAdr);
+                if(val.length > 0 && !that.settings.disableNormalInput) {
+                    that.createNewValue(val);
+                }
+                that.hideSlideDiv();
+            }
+        });
+        
+        return that;
+    }
+    
+    /**
+     * 所有插件列表
+     */
+    AutoWrite.all = [];
+    
+    /**
+     * 当前激活插件
+     */
+    AutoWrite.current = null;
+    
+    /**
+     * 应用插件
+     */ 
+    AutoWrite.init = function(setting){
+        AutoWrite.all = [];
+        // 若非在input触发删除键，则删除所有选中元素
+        $(document).on('keydown', function(e){
+            var code = e.keyCode;
+            if($(e.target).is('input') || $(e.target).is('textarea')){
+                return;
+            }
+            if(code == 8 || code == 46) {
+                e.preventDefault();
+                e.stopPropagation();
+                for(var i = 0; i < AutoWrite.all.length; i++) {
+                    AutoWrite.all[i].delSelect();
+                }
+            } 
+        });
+        
+        AutoWrite.current = null;
+    };
+    
+    /**
+     * 聚焦
+     */ 
+    AutoWrite.prototype.inputfoucs = function () {
+        this.$input.focus();
+    };
+    
+    /**
+     * 刷新输入框长度
+     */ 
+    AutoWrite.prototype.inputRelength = function () {
+        var val = this.$input.val();
+        this.$input.width(val.length * 7 + 12);
+    };
+    
+    /**
+     * 删除
+     */ 
+    AutoWrite.prototype.deldom = function (keyCode) {
+        var val = this.$input.val();
+        if(0 == val.length){
+            if(8 == keyCode) {
+                this.$itemAdr.prev().remove();
+            } else if (46 == keyCode) {
+                this.$itemAdr.next().remove();
+            }
+        }
+        this.updateRealInput();
+    };
+    
+    /**
+     * 删除选中
+     */ 
+    AutoWrite.prototype.delSelect = function () {
+        this.$parentBox.find('.' + this.selectClass).remove();
+        this.updateRealInput();
+    };
+    
+    /**
+     * 插值
+     */ 
+    AutoWrite.prototype.createNewValue = function (value, data) {
+        value = value.replace('<', '&lt;').replace('>', '&gt;');
+        var theItem = $('<div class="item-adr"><em></em></div>');
+        theItem.insertBefore(this.$itemAdr);
+        theItem.find('em').html(value);
+        if(data){
+            theItem.find('em').data('privateData', data);
+        }
+        this.$input.val('');
+        this.inputRelength();
+        this.hideSlideDiv();
+        this.updateRealInput();
+    };
+    
+    /**
+     * 显示提示列表
+     */
+    AutoWrite.prototype.showSlideDiv = function (list, dataList) {
+        if(!list || list.length == 0 || (dataList && list.length != dataList.length)){
+            this.hideSlideDiv();
+            return;
+        }
+        this.$slideDiv.empty();
+        for(var i = 0; i < list.length && i < 10; i++){
+            var p = $('<p>' + list[i] + '</p>');
+            if(dataList){
+                p.data('privateData', dataList[i]);
+            }
+            this.$slideDiv.append(p);
+        }
+        this.$slideDiv.fadeIn();
+    };
+    
+    /**
+     * 隐藏提示列表
+     */
+    AutoWrite.prototype.hideSlideDiv = function () {
+        this.$slideDiv.hide();
+    }; 
+    
+    /**
+     * 滚动提示选项
+     */ 
+    AutoWrite.prototype.scrollSlideSelection = function(up) {
+        var current = this.$slideDiv.find('.current');
+        var all = this.$slideDiv.children();
+        if(all.length == 0){
+            return;
+        }
+        current.removeClass('current');
+        if(up){
+            if(current.length > 0 && current.prev()[0]){
+                current.prev().addClass('current');
+            } else {
+                $(all[all.length - 1]).addClass('current');
+            }
+        } else {
+            if(current.length > 0 && current.next()[0]){
+                current.next().addClass('current');
+            } else {
+                $(all[0]).addClass('current');
+            }
+        }
+    };
+    
+    /**
+     * 更新实际的输入框
+     */
+    AutoWrite.prototype.updateRealInput = function(){
+        if(this.settings.updateFunc){
+            this.settings.updateFunc.call(this);
+            return;
+        }
+        var $addrs = this.$parentBox.find('.item-adr em');
+        var resultList = [];
+        var that = this;
+        $addrs.each(function(k, v){
+            var text = $(v).text();
+            if(that.settings.parseFunc){
+                text = that.settings.parseFunc.call(this, v);
+            }
+            resultList.push(text);
+        });
+        this.$realInput.val(resultList.join(' '));
+    };
+    
+    /**
+     * 默认
+     */
+    AutoWrite.defaultSetting = {
+        searchFunc: function(){return [];},
+        width: null
+    };
+    
+    exports.AutoWrite = AutoWrite;
+});

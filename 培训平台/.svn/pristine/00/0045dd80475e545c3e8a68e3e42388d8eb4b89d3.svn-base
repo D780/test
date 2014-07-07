@@ -1,0 +1,14 @@
+//班次学习进度表
+module.exports = function(sequelize, DataTypes) {
+  var Progress = sequelize.define('Progress', {
+    userId : {type: DataTypes.INTEGER, defaultValue: 0},                //学员的用户id
+    classId : {type: DataTypes.INTEGER, defaultValue: 0},               //班次id
+    chapterId : {type: DataTypes.INTEGER, defaultValue: 0},             //章节id
+    status : {type: DataTypes.INTEGER, defaultValue: 0},                //观看状态 0是在看 1是看完
+    createdTime: {type: DataTypes.STRING, allowNull: true},      
+    updatedTime: {type: DataTypes.STRING, allowNull: true} 
+  },{
+    timestamps: false
+  });
+  return Progress;
+};

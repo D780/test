@@ -1,0 +1,72 @@
+<!--权限管理 开始-->
+<div class="manage">
+    <div class="bd">
+        <div class="bd-t">
+            <h3>特殊用户权限</h3>
+        </div>
+        <div class="tb">
+            <table width="100%" class="ui_table">
+                <thead>
+                <tr>
+                    <th>姓名</th>
+                    <th>课程管理权限</th>
+                    <th>讲师管理权限</th>
+                    <th>系统管理员权限</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% for(var i = 0; i < result.result.length; i++) {
+                    var item = result.result[i]; %>
+                    <tr <% if(i % 2){ %>class="even"<% } %> user-data="<%= JSON.stringify(item) %>">
+                        <td><a href="###"><%= item.name %></a></td>
+                        <td><% if(item.course){ %><b>yes</b><%}else{%><i>no</i><%}%></td>
+                        <td><% if(item.tutor){ %><b>yes</b><%}else{%><i>no</i><%}%></td>
+                        <td><% if(item.admin){ %><b>yes</b><%}else{%><i>no</i><%}%></td>
+                        <td class="operation"><a class="btn-modify-authority" href="###">编辑</a><a class="btn-delete-authority" href="###">删除</a></td>
+                    </tr>
+                <% } %>
+                </tbody>
+            </table>
+        </div>
+        <div class="btn fn-clear">
+            <a href="###" class="btn-add-authority ui-button ui-button-lreg fn-right">添加</a>
+        </div>
+    </div>
+</div>
+<!--权限管理 结束-->
+
+<script id="template-dialog-authority" type="text/html">
+    <form class="set_item" id="form-modify-authority">
+        {{if name}}
+        <input type="text" class="ui_disabledinput" disabled="disabled" value="{{name}}" size="30">
+        {{else}}
+        <div class="write-input-box">
+            <div class="item-input fn-clear">
+                <div class="item-adr-add">
+                    <input type="text"><span></span>
+                    <div class="slideDiv fn-hide">
+                    </div>
+                </div>
+            </div>
+            <input name="user" type="text" class="item-real-input fn-hide"/>
+        </div>
+        {{/if}}
+        {{if userId}}
+        <input name="userId" type="text" class="ui_disabledinput fn-hide" value="{{userId}}" size="30">
+        {{/if}}
+        <p><label><input name="course" value="1" type="checkbox" {{if course}}checked="checked"{{/if}}>课程管理权限</label></p>
+        <p><label><input name="tutor" value="1" type="checkbox" {{if tutor}}checked="checked"{{/if}}>讲师管理权限</label></p>
+        <p><label><input name="admin" value="1" type="checkbox" {{if admin}}checked="checked"{{/if}}>系统管理员权限</label></p>
+    </form>
+</script>
+
+<script type="text/html" id="template-tr-user">
+    <tr {{if even}}class="even"{{/if}} user-data="{{userData}}">
+        <td><a href="###">{{name}}</a></td>
+        <td>{{if course}}<b>yes</b>{{else}}<i>no</i>{{/if}}</td>
+        <td>{{if tutor}}<b>yes</b>{{else}}<i>no</i>{{/if}}</td>
+        <td>{{if admin}}<b>yes</b>{{else}}<i>no</i>{{/if}}</td>
+        <td class="operation"><a class="btn-modify-authority" href="###">编辑</a><a class="btn-delete-authority" href="###">删除</a></td>
+    </tr>
+</script>

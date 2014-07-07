@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head lang="zh-cn">
+    <meta charset="UTF-8">
+    <title><%= title %></title>
+    <link href="/css/comm.css" rel="stylesheet">
+    <link href="/css/ui-dialog.css" rel="stylesheet">
+    <link href="/css/custom.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/lib/seajs/sea-debug.js"></script>
+    <script type="text/javascript" src="/js/lib/seajs/sea.config.js"></script>
+</head>
+<body>
+<div class="header">
+    <div class="wrap">
+        <div class="nav">
+            <div class="nav-wrap">
+                <div class="nav-list">
+                    <a href="/">首页</a>
+                    <a href="/courses">课程</a>
+                    <% if(USERSESSION.access) { %>
+                    <a href="<% if(USERSESSION.authority.course){ %>/manage<% } else if(USERSESSION.authority.tutor) { %>/managetutor<% } else if(USERSESSION.authority.admin){ %>/manageuser<% } %>">管理</a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <div class="logo">
+            <img src="/img/logo.png" alt="多益培训"/>
+        </div>
+        <div class="menu">
+            <div class="menu-bd">
+                <span>当前登录：<%= USERSESSION.name %></span>
+                <a href=<%= logoutUrl %>>退出</a>
+            </div>
+        </div>
+    </div>
+</div>

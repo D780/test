@@ -1,0 +1,85 @@
+/**
+ * 课程内容
+ */
+seajs.use(['jquery', 'dialog', 'template', 'tool', 'api', 'ui'],function($, dialog, template, tool, api, ui){
+
+    function setVideo(videoUrl, id){
+        var vdo = videoUrl;
+        var pic = '';
+        var auto = false;
+        var fnB = '_onVideoEnd';
+        var fnParamB = id;
+        var fnA = '_onVideoStart';
+        var fnParamA = id;
+        var player = getPlayer("FlashID");
+        if(player){
+            player.sendDataFromAs(pic,vdo,auto,fnA,fnParamA,fnB,fnParamB);
+        }
+    }
+
+    /**
+     * 获取播放器
+     */
+    function getPlayer(id) {
+        if (navigator.appName.indexOf("Microsoft") != -1) {
+            var UA = navigator.userAgent,
+                isIE = UA.indexOf('MSIE') > -1,
+                v = isIE ? /\d+/.exec(UA.split(';')[1]) : 'no ie';
+            if (v > 10) {
+                return document.embeds[id]; //document[movieName];
+            } else {
+                return document.getElementById(id);
+            }
+        } else {
+            return document.embeds[id]; //document[movieName];
+        }
+    }
+    
+    // 播放开始回调
+    function onVideoStart(chapterId){
+        var classId = $('.detail[class-id]').attr('class-id');
+        api.videoStart({classId: classId, chapterId: chapterId});
+        ui.tips('开始学习');
+    }
+    
+    // 播放结束回调
+    function onVideoEnd(chapterId){
+        var classId = $('.detail[class-id]').attr('class-id');
+        api.videoEnd({classId: classId, chapterId: chapterId});
+		$('.detail .itembox[chapter-id=' + chapterId + ']').find('.progress').text('完成');
+        ui.tips('完成学习');
+    }
+    
+    window._onVideoStart = onVideoStart;
+    window._onVideoEnd = onVideoEnd;
+
+	// 课程章节内容
+	$('#tab-content-chapter').on('click', '.btn-view-intro', function(e){
+		var intro = $(this).parent().siblings('.intro').html();
+		var d = dialog({
+			content: intro,
+			title: '课程资料'
+		});
+		d.showModal();
+	});
+
+	// 视频
+	$('#tab-content-chapter').on('click', '.btn-view-video', function(e){
+		var $this = $(this);
+		var intro = $this.parent().siblings('.intro').html();
+		var title = $this.parent().siblings('.title').text();
+		var videoUrl = $this.attr('video');
+        var chapterId = $this.parents('.itembox[chapter-id]').attr('chapter-id');
+		var html = template('template-dialog-video', {
+            videoUrl: videoUrl,
+            chapterId: chapterId
+        });
+		var d = dialog({
+			content: intro,
+			title: title ? title : ' ',
+			innerHTML: html,
+            width: 230
+		});
+		d.showModal();
+	});
+});

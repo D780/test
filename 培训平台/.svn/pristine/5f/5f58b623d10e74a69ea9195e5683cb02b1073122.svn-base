@@ -1,0 +1,40 @@
+<script type="text/html" id="template-tutor-info">
+    <div class="content content-tutor-info">
+        <div class="manage">
+            <table class="details">
+                <tr>
+                    <th class="t">姓名：</th><td>{{name}}</td>
+                </tr>
+                <tr>
+                    <th class="t">所属部门：</th><td>{{department}}</td>
+                </tr>
+                <tr>
+                    <th class="t">岗位：</th><td>{{branch}}</td>
+                </tr>
+                <tr>
+                    <th class="t">教授课程：</th>
+                    <td class="tb">
+                        <table width="100%" class="ui_table">
+                            <thead>
+                            <tr>
+                                <th>课程名称</th>
+                                <th>班次</th>
+                                <th>开课状态</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{each classes as c i}}
+                            <tr {{if i % 2}}class="even"{{/if}}>
+                            <td>{{c.courseName}}</td>
+                            <td>{{c.className}}</td>
+                            <td>{{c.classStatus}}</td>
+                            </tr>
+                            {{/each}}
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</script>

@@ -1,0 +1,82 @@
+/**
+ *  by Celavie 2014.5
+ *  app入口
+ */
+
+var express = require('express');
+var http = require('http');
+var path = require('path');
+var app = express();
+var ejs = require('ejs');
+var log4js = require('log4js');
+var redisStore = require('connect-redis')(express);
+var db = require('./models');
+var allLogin = require('./config').allLogin;
+var later = require('later');
+var cron = require('./utils/cron').cron;
+
+later.date.localTime();
+
+log4js.configure({
+  appenders: [
+    { type: 'console' },
+    {
+      type: 'dateFile', 
+      filename: 'logs/log', 
+      pattern: "yyyyMMdd",
+      alwaysIncludePattern: true,
+      category: 'training' 
+    }
+  ],
+  replaceConsole: true
+});
+var logger = log4js.getLogger('training');
+var formater = {level:'auto', format:':remote-addr :method :url :status :response-time ms'};
+app.use(log4js.connectLogger(logger, formater));
+
+app.engine('.html', ejs.__express);
+app.engine('.ejs', ejs.__express);
+
+app.set('port', process.env.PORT || 8011);
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+app.use(express.cookieParser());
+var maxAge = 1000*60*60*24*365; //cookie过期时间 这里是1年
+app.use(express.session({secret: 'gflovexf', cookie: { maxAge: maxAge}, store: new redisStore()}));
+app.use(express.favicon());
+app.use(express.logger('dev'));
+
+app.use(express.json());
+app.use(express.urlencoded());
+app.use(express.methodOverride());
+
+app.use(function(req, res, next){
+  res.locals.logoutUrl = allLogin.logoutUrl;
+  res.locals.USERSESSION =  req.session.user || {};
+  require('./helpers/ejsHelper')(res.locals);
+  next();
+});
+
+app.use(app.router);
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'upload')));
+
+if ('development' == app.get('env')) {
+  app.use(express.errorHandler());
+}
+
+require('./routes/url')(app);
+
+db.sequelize.sync({force: false}).complete(function(err){
+  if(err){
+    throw err;
+  } else {
+    http.createServer(app).listen(app.get('port'), function(){
+      console.log('Express server listening on port ' + app.get('port'));
+      var sched = later.parse.text('at 5:10 am');
+      later.setInterval(function(){cron();}, sched);
+    });
+  }
+});
+
+
